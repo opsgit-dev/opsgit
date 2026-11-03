@@ -1,6 +1,6 @@
 {
   "name": "@opsgit/flags-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Client for opsgit flags: server-side local evaluation and thin client remote evaluation",
   "type": "module",
   "exports": {
@@ -17,7 +17,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@opsgit/core": "^0.1.1"
+    "@opsgit/core": "^0.1.2"
   },
   "license": "MIT",
   "repository": {
