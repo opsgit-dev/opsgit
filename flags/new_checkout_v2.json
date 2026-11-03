@@ -31,7 +31,7 @@
       "value": true
     },
     {
-      "name": "north-america-75pct",
+      "name": "north-america-50pct",
       "conditions": [
         {
           "attribute": "country",
