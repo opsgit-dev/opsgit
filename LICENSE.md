@@ -6,7 +6,7 @@ FSL-1.1-ALv2
 
 ## Notice
 
-Copyright $2026 ${licensor name}
+Copyright 2026 pysavantcodes
 
 ## Terms and Conditions
 
