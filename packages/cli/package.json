@@ -1,6 +1,6 @@
 {
   "name": "opsgit-flags",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Feature flags in Git, deployed to your own Cloudflare account. CLI: init, create, validate, check, explain, preview, build, stale, stats.",
   "license": "MIT",
   "type": "module",
@@ -32,7 +32,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@opsgit/core": "^0.1.0"
+    "@opsgit/core": "^0.1.1"
   },
   "publishConfig": {
     "access": "public"
