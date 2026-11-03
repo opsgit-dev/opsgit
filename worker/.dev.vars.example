@@ -1,0 +1,3 @@
+# Copy to worker/.dev.vars for local development with `npm run dev`.
+SERVER_KEYS=dev-server-key
+CLIENT_KEYS=dev-client-key

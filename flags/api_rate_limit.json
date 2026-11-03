@@ -1,0 +1,20 @@
+{
+  "$schema": "../schema/flag.schema.json",
+  "key": "api_rate_limit",
+  "description": "Requests per minute allowed per API key",
+  "owner": "platform-team",
+  "enabled": true,
+  "default": 100,
+  "rules": [
+    {
+      "name": "paid-plans",
+      "conditions": [{ "attribute": "plan", "operator": "in", "value": ["pro", "enterprise"] }],
+      "value": 1000
+    },
+    {
+      "name": "internal-tools",
+      "conditions": [{ "attribute": "app_id", "operator": "starts_with", "value": "internal-" }],
+      "value": 5000
+    }
+  ]
+}

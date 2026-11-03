@@ -1,0 +1,32 @@
+name: Validate flags
+
+on:
+  pull_request:
+    paths:
+      - "flags/**"
+      - "packages/**"
+      - "scripts/**"
+      - "worker/**"
+      - ".github/workflows/validate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # Flag validation and the core tests need no dependencies at all.
+      - name: Validate flag files
+        run: npm run validate
+      - name: Core tests
+        run: npm test
+      - name: Install
+        run: npm ci
+      - name: Typecheck and build bundle
+        run: npm run build && npm run typecheck && npm run test:sdk

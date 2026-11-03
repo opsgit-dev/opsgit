@@ -1,0 +1,5 @@
+# Require review from flag owners before any flag change can merge.
+# Enable "Require review from Code Owners" in branch protection for main.
+#
+# /flags/            @your-org/flag-approvers
+# /flags/api_*.json  @your-org/platform-team

@@ -1,0 +1,39 @@
+name: Deploy flags
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flags/**"
+      - "packages/**"
+      - "scripts/**"
+      - "worker/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two deploys at once; a later push waits for the earlier one.
+concurrency:
+  group: deploy-flags
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Validate and bundle flags
+        run: npm run validate && npm run build
+      - name: Deploy worker
+        run: npm run deploy -w worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

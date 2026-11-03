@@ -1,0 +1,31 @@
+{
+  "name": "opsgit",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "workspaces": [
+    "packages/*",
+    "worker"
+  ],
+  "scripts": {
+    "validate": "node scripts/validate.ts",
+    "build:flags": "node scripts/build.ts",
+    "build": "npm run build -w @opsgit/core && npm run build -w @opsgit/flags-sdk && npm run build:flags",
+    "test": "node --test packages/core/test/*.test.ts",
+    "typecheck": "npm run build -w @opsgit/core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit",
+    "dev": "npm run build && npm run dev -w worker",
+    "deploy": "npm run build && npm run deploy -w worker",
+    "test:sdk": "node --test packages/sdk/test/*.test.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261023.1",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.40.0"
+  },
+  "allowScripts": {
+    "workerd@1.20261023.1": true,
+    "esbuild@0.28.2": true
+  }
+}

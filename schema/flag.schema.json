@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "opsgit flag",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["key", "enabled", "default"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,99}$", "description": "Must equal the file name without .json" },
+    "description": { "type": "string" },
+    "owner": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "enabled": { "type": "boolean", "description": "Master switch. When false the flag always serves default." },
+    "default": { "description": "Served when disabled or when no rule matches. Any JSON value." },
+    "rules": {
+      "type": "array",
+      "description": "Evaluated in order, first match wins. Conditions within a rule are ANDed.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "conditions", "value"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["attribute", "operator"],
+              "properties": {
+                "attribute": { "type": "string", "minLength": 1 },
+                "operator": { "enum": ["eq", "neq", "in", "not_in", "contains", "starts_with", "ends_with", "gt", "gte", "lt", "lte", "exists"] },
+                "value": {
+                  "oneOf": [
+                    { "type": ["string", "number", "boolean"] },
+                    { "type": "array", "minItems": 1, "items": { "type": ["string", "number", "boolean"] } }
+                  ]
+                }
+              }
+            }
+          },
+          "rollout": { "type": "number", "minimum": 0, "maximum": 100, "description": "Percent of matching contexts that get value. Default 100." },
+          "bucket_by": { "type": "string", "minLength": 1, "description": "Context attribute used for deterministic bucketing. Default user_id." },
+          "value": { "description": "Any JSON value" }
+        }
+      }
+    }
+  }
+}

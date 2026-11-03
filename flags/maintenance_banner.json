@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/flag.schema.json",
+  "key": "maintenance_banner",
+  "description": "Banner shown at the top of the app. Flip `enabled` to true to show it everywhere.",
+  "owner": "platform-team",
+  "enabled": false,
+  "default": null,
+  "rules": [
+    {
+      "name": "all-production-users",
+      "conditions": [{ "attribute": "environment", "operator": "eq", "value": "production" }],
+      "value": {
+        "message": "Scheduled maintenance tonight 02:00-03:00 UTC. Checkout will be unavailable.",
+        "severity": "warning"
+      }
+    }
+  ]
+}

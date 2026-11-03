@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+worker/src/flags.generated.json
+*.log
+.DS_Store

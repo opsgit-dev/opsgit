@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/flag.schema.json",
+  "key": "new_checkout_v2",
+  "description": "Redesigned multi-step checkout flow",
+  "owner": "payments-team",
+  "tags": ["checkout", "experiment"],
+  "enabled": true,
+  "default": false,
+  "rules": [
+    {
+      "name": "staging-everyone",
+      "conditions": [{ "attribute": "environment", "operator": "eq", "value": "staging" }],
+      "value": true
+    },
+    {
+      "name": "north-america-50pct",
+      "conditions": [{ "attribute": "country", "operator": "in", "value": ["US", "CA"] }],
+      "rollout": 50,
+      "value": true
+    }
+  ]
+}
