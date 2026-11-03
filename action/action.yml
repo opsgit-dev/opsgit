@@ -18,6 +18,9 @@ inputs:
   cloudflare-account-id:
     description: Cloudflare account ID. Required for deploy.
     default: ""
+  analytics:
+    description: Record evaluation counts in Workers Analytics Engine for `opsgit-flags stats`. The account must have Analytics Engine enabled first.
+    default: "false"
   github-token:
     description: Token used to post the preview comment
     default: ${{ github.token }}
@@ -76,4 +79,6 @@ runs:
         node "$CLI" check
         node "$CLI" build --out "$ENGINE/worker/src/flags.generated.json"
         cd "$ENGINE/worker"
-        npx wrangler deploy --name "${{ inputs.worker-name }}"
+        cp wrangler.toml wrangler.deploy.toml
+        if [ "${{ inputs.analytics }}" = "true" ]; then cat analytics.toml >> wrangler.deploy.toml; fi
+        npx wrangler deploy --config wrangler.deploy.toml --name "${{ inputs.worker-name }}"

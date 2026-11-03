@@ -1,0 +1,7 @@
+# Appended to wrangler.toml by the action when `analytics: true`, or by `npm run deploy:analytics`.
+# Requires Analytics Engine to be enabled once for the account:
+#   https://dash.cloudflare.com/?to=/:account/workers/analytics-engine
+# One data point per evaluation, queried by `opsgit-flags stats`. Free tier: 100k points/day.
+[[analytics_engine_datasets]]
+binding = "EVALUATIONS"
+dataset = "opsgit_flag_evaluations"

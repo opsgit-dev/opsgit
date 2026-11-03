@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "deploy:analytics": "cat wrangler.toml analytics.toml > wrangler.deploy.toml && wrangler deploy --config wrangler.deploy.toml"
   },
   "dependencies": {
     "@opsgit/core": "*"

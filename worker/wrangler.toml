@@ -20,7 +20,5 @@ name = "RATE_LIMITER"
 namespace_id = "1001"
 simple = { limit = 120, period = 60 }
 
-# One data point per evaluation, queried by `opsgit-flags stats`. Free tier: 100k points/day.
-[[analytics_engine_datasets]]
-binding = "EVALUATIONS"
-dataset = "opsgit_flag_evaluations"
+# Evaluation analytics are opt-in because the account must enable Analytics Engine first.
+# See worker/analytics.toml and the action's `analytics` input.

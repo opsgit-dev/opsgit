@@ -6,3 +6,4 @@ worker/src/flags.generated.json
 *.log
 .DS_Store
 *.local
+worker/wrangler.deploy.toml

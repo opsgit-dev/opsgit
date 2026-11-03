@@ -157,7 +157,9 @@ npx opsgit-flags diff origin/main                    # the preview comment, prin
 npx opsgit-flags stats --days 30                     # evaluations per flag, and flags with no traffic
 ```
 
-`explain` prints every rule with a tick or cross per condition and, for partial rollouts, the user's bucket. `stats` reads Workers Analytics Engine and needs `CLOUDFLARE_API_TOKEN` with *Account Analytics: Read* plus `CLOUDFLARE_ACCOUNT_ID` in the environment.
+`explain` prints every rule with a tick or cross per condition and, for partial rollouts, the user's bucket.
+
+`stats` reads Workers Analytics Engine. Enable Analytics Engine once in the Cloudflare dashboard (Workers & Pages → Analytics Engine), set `analytics: true` on the deploy step, and give `stats` a `CLOUDFLARE_API_TOKEN` with *Account Analytics: Read* plus `CLOUDFLARE_ACCOUNT_ID`.
 
 ## API
 
