@@ -10,29 +10,32 @@
     "worker"
   ],
   "scripts": {
-    "validate": "node scripts/validate.ts",
-    "build:flags": "node scripts/build.ts",
-    "build": "npm run build -w @opsgit/core && npm run build -w @opsgit/flags-sdk && npm run build:flags",
+    "build:core": "npm run build -w @opsgit/core",
+    "build:cli": "npm run build -w opsgit-flags",
+    "build": "npm run build:core && npm run build -w @opsgit/flags-sdk && npm run build:cli && npm run build:flags",
+    "build:flags": "node packages/cli/src/cli.ts build",
+    "flags": "node packages/cli/src/cli.ts",
+    "validate": "node packages/cli/src/cli.ts validate",
+    "check": "node packages/cli/src/cli.ts check",
+    "diff": "node packages/cli/src/cli.ts diff",
+    "stale": "node packages/cli/src/cli.ts stale",
     "test": "node --test packages/core/test/*.test.ts",
-    "typecheck": "npm run build -w @opsgit/core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit",
+    "test:sdk": "node --test packages/sdk/test/*.test.ts",
+    "test:worker": "node --test worker/test/*.test.ts",
+    "test:all": "npm test && npm run test:sdk && npm run test:worker",
+    "typecheck": "npm run build:core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit && tsc -p packages/cli/tsconfig.json --noEmit",
     "dev": "npm run build && npm run dev -w worker",
     "deploy": "npm run build && npm run deploy -w worker",
-    "test:sdk": "node --test packages/sdk/test/*.test.ts",
-    "check": "node scripts/check.ts",
-    "diff": "node scripts/diff.ts",
-    "stale": "node scripts/stale.ts",
-    "flags": "node scripts/cli.ts"
+    "release": "node scripts/release.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261023.1",
     "typescript": "^5.9.0",
-    "wrangler": "^4.40.0"
+    "wrangler": "^4.40.0",
+    "@types/node": "^24.0.0"
   },
   "allowScripts": {
     "workerd@1.20261023.1": true,
     "esbuild@0.28.2": true
-  },
-  "bin": {
-    "opsgit-flags": "./scripts/cli.ts"
   }
 }

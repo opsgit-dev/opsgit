@@ -1,0 +1,39 @@
+name: Feature flags
+
+on:
+  pull_request:
+    paths: ["flags/**", "segments/**", "tests/**"]
+  push:
+    branches: [main]
+    paths: ["flags/**", "segments/**"]
+  workflow_dispatch:
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: __ACTION_REF__
+        with:
+          command: preview
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-flags
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: __ACTION_REF__
+        with:
+          command: deploy
+          worker-name: __WORKER_NAME__
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

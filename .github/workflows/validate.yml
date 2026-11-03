@@ -7,8 +7,8 @@ on:
       - "segments/**"
       - "tests/**"
       - "packages/**"
-      - "scripts/**"
       - "worker/**"
+      - "action/**"
       - ".github/workflows/validate.yml"
 
 permissions:
@@ -23,17 +23,17 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # Flag validation, fixtures, and the core tests need no dependencies at all.
+      - name: Core tests (no install needed)
+        run: npm test
+      - run: npm ci
+      - name: Build
+        run: npm run build
       - name: Validate flag and segment files
         run: npm run validate
       - name: Run flag fixtures
         run: npm run check
-      - name: Core tests
-        run: npm test
-      - name: Install
-        run: npm ci
-      - name: Typecheck, build bundle, SDK tests
-        run: npm run build && npm run typecheck && npm run test:sdk
+      - name: Typecheck, SDK and Worker tests
+        run: npm run typecheck && npm run test:sdk && npm run test:worker
 
   preview:
     name: Post flag preview comment
@@ -43,25 +43,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v5
+      # Dogfood the same composite action customers use.
+      - uses: ./action
         with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-      - name: Describe flag changes against the base branch
-        run: node scripts/diff.ts "origin/${{ github.base_ref }}" > preview.md
-      - name: Create or update the preview comment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          existing=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
-            --jq '[.[] | select(.body | contains("<!-- opsgit-flags-preview -->"))] | first | .id // empty')
-          if [ -n "$existing" ]; then
-            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@preview.md > /dev/null
-            echo "updated comment $existing"
-          else
-            gh api "repos/$REPO/issues/$PR/comments" -F body=@preview.md > /dev/null
-            echo "created comment"
-          fi
+          command: preview

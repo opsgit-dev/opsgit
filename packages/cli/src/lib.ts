@@ -1,11 +1,7 @@
+import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { validateFlag, validateSegment, type Flag, type Segments } from "../packages/core/src/index.ts";
-
-export const ROOT = path.resolve(import.meta.dirname, "..");
-export const FLAGS_DIR = path.join(ROOT, "flags");
-export const SEGMENTS_DIR = path.join(ROOT, "segments");
-export const TESTS_DIR = path.join(ROOT, "tests");
+import { validateFlag, validateSegment, type Flag, type Segments } from "@opsgit/core";
 
 export interface Problem {
   file: string;
@@ -17,6 +13,22 @@ export interface Loaded {
   flags: Record<string, Flag>;
   segments: Segments;
   problems: Problem[];
+}
+
+/**
+ * The flags repository root: --root, then $OPSGIT_ROOT, then the nearest
+ * ancestor of the current directory that contains a flags/ folder.
+ */
+export function resolveRoot(explicit?: string): string {
+  if (explicit) return path.resolve(explicit);
+  if (process.env.OPSGIT_ROOT) return path.resolve(process.env.OPSGIT_ROOT);
+  let dir = process.cwd();
+  for (;;) {
+    if (existsSync(path.join(dir, "flags"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return process.cwd();
+    dir = parent;
+  }
 }
 
 interface JsonFile {
@@ -57,12 +69,11 @@ function strip<T>(parsed: unknown): T {
 
 /** Days from today until an ISO date; negative when it is in the past. */
 export function daysUntil(iso: string, now = new Date()): number {
-  const target = new Date(iso);
-  return Math.floor((target.getTime() - now.getTime()) / 86_400_000);
+  return Math.floor((new Date(iso).getTime() - now.getTime()) / 86_400_000);
 }
 
-/** Reads and validates /segments and /flags. Returns clean data plus every problem found. */
-export async function loadAll(root: string = ROOT): Promise<Loaded> {
+/** Reads and validates <root>/segments and <root>/flags. Returns clean data plus every problem found. */
+export async function loadAll(root: string): Promise<Loaded> {
   const problems: Problem[] = [];
   const segments: Segments = {};
   const flags: Record<string, Flag> = {};
@@ -125,3 +136,10 @@ export function canonical(value: unknown): string {
   }
   return JSON.stringify(value);
 }
+
+export function fail(message: string): never {
+  console.error(message);
+  process.exit(1);
+}
+
+export const TEMPLATES_DIR = path.resolve(import.meta.dirname, "..", "templates");

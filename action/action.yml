@@ -1,0 +1,79 @@
+name: opsgit flags
+description: Validate, preview, and deploy feature flags from this repository to your own Cloudflare account
+author: opsgit
+branding:
+  icon: toggle-right
+  color: orange
+
+inputs:
+  command:
+    description: "`preview` (validate + fixtures + PR comment) or `deploy` (validate + build + wrangler deploy) or `validate`"
+    required: true
+  worker-name:
+    description: Name of the Cloudflare Worker to deploy to
+    default: opsgit-flags
+  cloudflare-api-token:
+    description: API token with the "Edit Cloudflare Workers" template. Required for deploy.
+    default: ""
+  cloudflare-account-id:
+    description: Cloudflare account ID. Required for deploy.
+    default: ""
+  github-token:
+    description: Token used to post the preview comment
+    default: ${{ github.token }}
+  node-version:
+    default: "24"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install opsgit engine
+      shell: bash
+      run: |
+        cd "${{ github.action_path }}/.."
+        npm ci --no-audit --no-fund --loglevel=error
+        npm run build -w @opsgit/core -w opsgit-flags --loglevel=error
+
+    - name: Validate flags
+      if: inputs.command == 'validate'
+      shell: bash
+      env:
+        OPSGIT_ROOT: ${{ github.workspace }}
+      run: |
+        CLI="${{ github.action_path }}/../packages/cli/dist/cli.js"
+        node "$CLI" validate
+        node "$CLI" check
+
+    - name: Preview flag changes
+      if: inputs.command == 'preview'
+      shell: bash
+      env:
+        OPSGIT_ROOT: ${{ github.workspace }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        cd "${{ github.workspace }}"
+        git fetch --no-tags --depth=1 origin "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+        node "${{ github.action_path }}/../packages/cli/dist/cli.js" preview
+
+    - name: Build and deploy
+      if: inputs.command == 'deploy'
+      shell: bash
+      env:
+        OPSGIT_ROOT: ${{ github.workspace }}
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+      run: |
+        if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+          echo "::error::deploy needs cloudflare-api-token and cloudflare-account-id"; exit 1
+        fi
+        ENGINE="${{ github.action_path }}/.."
+        CLI="$ENGINE/packages/cli/dist/cli.js"
+        node "$CLI" validate
+        node "$CLI" check
+        node "$CLI" build --out "$ENGINE/worker/src/flags.generated.json"
+        cd "$ENGINE/worker"
+        npx wrangler deploy --name "${{ inputs.worker-name }}"

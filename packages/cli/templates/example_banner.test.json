@@ -1,0 +1,3 @@
+[
+  { "name": "disabled flags serve the default", "flag": "example_banner", "context": { "environment": "staging" }, "expect": { "value": null, "reason": "FLAG_DISABLED" } }
+]

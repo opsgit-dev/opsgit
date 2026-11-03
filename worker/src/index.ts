@@ -1,11 +1,28 @@
-import bundleJson from "./flags.generated.json";
+import bundleJson from "./flags.generated.json" with { type: "json" };
 import { evaluate, evaluateAll, type Bundle, type Context, type Scalar } from "@opsgit/core";
+
+/** Cloudflare rate limiting binding; see [[ratelimits]] in wrangler.toml. */
+interface RateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
+/** Workers Analytics Engine dataset binding. */
+interface AnalyticsDataset {
+  writeDataPoint(point: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
+}
 
 export interface Env {
   SERVER_KEYS?: string;
   CLIENT_KEYS?: string;
   ALLOWED_ORIGINS?: string;
+  /** Optional. Limits client-key traffic per IP so a leaked key cannot drain the request quota. */
+  RATE_LIMITER?: RateLimiter;
+  /** Optional. Records one data point per flag evaluation for `opsgit-flags stats`. */
+  EVALUATIONS?: AnalyticsDataset;
 }
+
+/** Analytics Engine accepts a bounded number of points per invocation; evaluate-all stays under it. */
+const MAX_POINTS_PER_REQUEST = 20;
 
 type Role = "server" | "client";
 
@@ -28,6 +45,10 @@ function splitKeys(raw: string | undefined): string[] {
 
 async function sha256(input: string): Promise<Uint8Array> {
   return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input)));
+}
+
+function hex(bytes: Uint8Array, length: number): string {
+  return Array.from(bytes.slice(0, length), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /** Compares hashes so that timing does not leak key length or prefix. */
@@ -149,6 +170,22 @@ function etagMatches(request: Request): boolean {
     .some((t) => t === BUNDLE.etag || t === "*");
 }
 
+function record(env: Env, role: Role, evaluations: { key: string; reason: string; rule?: string }[]): void {
+  if (!env.EVALUATIONS) return;
+  for (const e of evaluations.slice(0, MAX_POINTS_PER_REQUEST)) {
+    env.EVALUATIONS.writeDataPoint({ blobs: [e.key, e.reason, e.rule ?? "", role], doubles: [1], indexes: [e.key] });
+  }
+}
+
+/** Client keys are public by design, so limit them per key and caller IP. Server keys are trusted. */
+async function rateLimited(request: Request, env: Env, role: Role): Promise<boolean> {
+  if (role !== "client" || !env.RATE_LIMITER) return false;
+  const key = presentedKey(request) ?? "";
+  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+  const { success } = await env.RATE_LIMITER.limit({ key: `${hex(await sha256(key), 8)}:${ip}` });
+  return !success;
+}
+
 // ---------- routes ----------
 
 export default {
@@ -175,6 +212,7 @@ export default {
 
     const role = await authenticate(request, env);
     if (!role) return error(request, env, 401, "missing or invalid API key");
+    if (await rateLimited(request, env, role)) return error(request, env, 429, "rate limit exceeded for this key and IP");
 
     // GET /v1/flags -> whole bundle, for server SDKs that evaluate locally
     if (path === "/v1/flags" && request.method === "GET") {
@@ -203,6 +241,7 @@ export default {
       const flag = BUNDLE.flags[key];
       if (!flag) return error(request, env, 404, "flag not found", { key, reason: "FLAG_NOT_FOUND" });
       const result = evaluate(flag, buildContext(parsed.body.context, request), BUNDLE.segments ?? {});
+      record(env, role, [result]);
       return json(request, env, { ...result, etag: BUNDLE.etag, evaluated_at: new Date().toISOString() });
     }
 
@@ -211,6 +250,7 @@ export default {
       const parsed = await readJsonBody(request);
       if (!parsed.ok) return error(request, env, 400, parsed.message);
       const flags = evaluateAll(BUNDLE, buildContext(parsed.body.context, request));
+      record(env, role, Object.values(flags));
       return json(request, env, { etag: BUNDLE.etag, evaluated_at: new Date().toISOString(), flags });
     }
 

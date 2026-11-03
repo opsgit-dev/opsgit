@@ -17,8 +17,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+      - run: npm ci && npm run build:core && npm run build:cli
       - name: Find expired and expiring flags
-        run: node scripts/stale.ts > stale.md
+        run: node packages/cli/dist/cli.js stale > stale.md
       - name: Open, update, or close the tracking issue
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,40 @@
+{
+  "name": "opsgit-flags",
+  "version": "0.1.0",
+  "description": "Feature flags in Git, deployed to your own Cloudflare account. CLI: init, create, validate, check, explain, preview, build, stale, stats.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "opsgit-flags": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pysavantcodes/opsgit.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/pysavantcodes/opsgit#readme",
+  "keywords": [
+    "feature-flags",
+    "gitops",
+    "cloudflare-workers",
+    "feature-toggles"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "prebuild": "node -e \"require('fs').cpSync('../../schema', 'templates/schema', {recursive: true})\"",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@opsgit/core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

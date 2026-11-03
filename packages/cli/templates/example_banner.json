@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/flag.schema.json",
+  "key": "example_banner",
+  "description": "Example flag created by opsgit-flags init. Safe to delete.",
+  "enabled": false,
+  "default": null,
+  "rules": [
+    {
+      "name": "staging-preview",
+      "conditions": [{ "attribute": "environment", "operator": "eq", "value": "staging" }],
+      "value": { "message": "Welcome to the new banner", "severity": "info" }
+    }
+  ]
+}

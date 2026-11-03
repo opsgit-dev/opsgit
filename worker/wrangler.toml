@@ -13,3 +13,14 @@ ALLOWED_ORIGINS = "*"
 # Secrets (never put these here, set them with `wrangler secret put <NAME>`):
 #   SERVER_KEYS  comma separated keys for backends; may download the full bundle
 #   CLIENT_KEYS  comma separated keys for browsers and mobile apps; may only evaluate
+
+# Per client key + IP limit. Server keys are not limited. Period must be 10 or 60 seconds.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 120, period = 60 }
+
+# One data point per evaluation, queried by `opsgit-flags stats`. Free tier: 100k points/day.
+[[analytics_engine_datasets]]
+binding = "EVALUATIONS"
+dataset = "opsgit_flag_evaluations"

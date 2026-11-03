@@ -1,0 +1,43 @@
+name: Release packages
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC) with provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm test && npm run test:sdk && npm run test:worker
+      - name: Check tag matches package versions
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          for p in packages/core packages/sdk packages/cli; do
+            v=$(node -p "require('./$p/package.json').version")
+            [ "$v" = "$tag" ] || { echo "::error::$p is $v but tag is $tag"; exit 1; }
+          done
+      - name: Publish
+        run: |
+          npm publish -w @opsgit/core --provenance --access public
+          npm publish -w @opsgit/flags-sdk --provenance --access public
+          npm publish -w opsgit-flags --provenance --access public
+      - name: Move the major tag for the GitHub Action
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          major="v${GITHUB_REF_NAME#v}"; major="${major%%.*}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$major" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$major"

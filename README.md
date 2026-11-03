@@ -2,16 +2,53 @@
 
 Feature flags that live in your Git repo and run on your own Cloudflare account.
 
-- **Git is the control plane.** A flag is a JSON file in `flags/`. Changing one is a pull request, with CODEOWNERS review, CI validation, and a permanent audit trail.
+- **Git is the control plane.** A flag is a JSON file in `flags/`. Changing one is a pull request, with review, CI validation, a plain-English preview comment, and a permanent audit trail.
 - **The edge is the data plane.** On merge, the flags are compiled into a Cloudflare Worker and deployed globally. No KV, no database, no cold reads. Evaluation is an in-memory lookup.
 - **Your account, your bill.** Nothing runs on anyone else's infrastructure. The free Workers tier covers 100k requests per day; the paid tier is $5 per month.
-- **Local evaluation for backends.** Server SDKs download the bundle once and evaluate in-process, so a flag check costs no network round-trip. Browsers and mobile apps use a thin client that never sees your targeting rules.
+- **Local evaluation for backends.** Server SDKs download the bundle once and evaluate in-process. Browsers and mobile apps use a thin client that never sees your targeting rules.
+
+## Set up a flags repository in two minutes
+
+```sh
+mkdir my-flags && cd my-flags && git init
+npx opsgit-flags init
+```
+
+That writes `flags/`, `segments/`, `tests/`, JSON schemas for editor autocomplete, an example flag, and one workflow file, `.github/workflows/flags.yml`:
+
+```yaml
+- uses: pysavantcodes/opsgit/action@v0
+  with:
+    command: preview        # on pull requests: validate, run fixtures, post the preview comment
+- uses: pysavantcodes/opsgit/action@v0
+  with:
+    command: deploy         # on merge to main: build the bundle, deploy the Worker
+    worker-name: my-flags
+    cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+```
+
+Then, once:
+
+1. Create a Cloudflare API token with the **Edit Cloudflare Workers** template and add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+2. Set the keys your apps will present, from your machine:
+
+   ```sh
+   npx wrangler login
+   npx wrangler secret put SERVER_KEYS --name my-flags    # comma separated; for backends
+   npx wrangler secret put CLIENT_KEYS --name my-flags    # comma separated; for browsers and mobile
+   ```
+
+3. Commit and push. Every pull request gets a preview comment. Every merge to `main` deploys.
+
+Your repository never contains engine code. Updates arrive by bumping the action version.
 
 ## How it works
 
 ```
-  pull request ──▶ validate-pr (schema, key/filename match, rule shapes)
-       │
+  pull request ──▶ validate (schema, key/filename match, rule shapes, segment references)
+       │           fixtures (expected outcomes in tests/)
+       │           preview comment ("rule north-america rollout: 50% → 75% ⚠️")
      merge to main
        │
        ▼
@@ -25,60 +62,28 @@ Feature flags that live in your Git repo and run on your own Cloudflare account.
 
 Killing a flag is `git revert` plus the deploy time of the workflow, typically one to two minutes end to end.
 
-### What a pull request gets
-
-- **Validation** of every flag, segment, and fixture file, with errors annotated on the exact line.
-- **A preview comment** describing the change in words: "rule north-america-50pct rollout: 50% → **75%** ⚠️". Reviewers see the effect, not a JSON diff. Changes that widen exposure are marked.
-- **Fixture checks** so that expected outcomes in `tests/` still hold.
-
-## Quickstart
-
-1. **Use this repo as a template** and clone it.
-2. **Create a Cloudflare API token** with the *Edit Cloudflare Workers* template, and note your account ID.
-3. **Add GitHub secrets** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and create a `production` environment (Settings → Environments). The deploy workflow uses it so you can require approvals later.
-4. **Set the API keys the Worker will accept.** Generate long random strings and store them as Worker secrets:
-
-   ```sh
-   npm install
-   npx wrangler login
-   cd worker
-   npx wrangler secret put SERVER_KEYS   # comma separated; for backends
-   npx wrangler secret put CLIENT_KEYS   # comma separated; for browsers and mobile
-   ```
-
-5. **Push to `main`.** The deploy workflow builds the bundle and deploys the Worker. Check it:
-
-   ```sh
-   curl https://opsgit-flags.<your-subdomain>.workers.dev/health
-   ```
-
-6. **Edit a flag**, open a PR, read the preview comment, merge. Done.
-
-Prefer no GitHub secrets? Connect the repo in the Cloudflare dashboard under Workers → Create → Import a repository, set the root directory to `worker` and the build command to `cd .. && npm ci && npm run build`. Cloudflare then deploys on every push to `main` and you can delete `deploy.yml`.
-
-### Local development
-
-```sh
-cp worker/.dev.vars.example worker/.dev.vars
-npm run dev                      # builds, then wrangler dev on http://localhost:8787
-curl -H "authorization: Bearer dev-server-key" http://localhost:8787/v1/flags
-```
-
 ## Flag files
 
-One file per flag in `flags/<key>.json`. The `key` must equal the file name. Add `"$schema": "../schema/flag.schema.json"` for editor autocomplete.
+One file per flag in `flags/<key>.json`. The `key` must equal the file name.
 
 ```json
 {
+  "$schema": "../schema/flag.schema.json",
   "key": "new_checkout_v2",
   "description": "Redesigned multi-step checkout flow",
   "owner": "payments-team",
+  "expires": "2027-03-31",
   "enabled": true,
   "default": false,
   "rules": [
     {
       "name": "staging-everyone",
       "conditions": [{ "attribute": "environment", "operator": "eq", "value": "staging" }],
+      "value": true
+    },
+    {
+      "name": "beta-testers",
+      "conditions": [{ "segment": "beta_testers" }],
       "value": true
     },
     {
@@ -100,21 +105,19 @@ One file per flag in `flags/<key>.json`. The `key` must equal the file name. Add
 | `rules[].rollout` | Percent of matching contexts that receive `value`, 0 to 100. Default 100. |
 | `rules[].bucket_by` | Context attribute used for bucketing. Default `user_id`. |
 | `rules[].value` | Any JSON value, served when the rule matches. |
+| `expires` | ISO date. Never enforced at runtime; CI warns as it nears and a weekly issue lists flags past it. |
 
 **Rollouts are deterministic.** A context is bucketed by `murmur3("<flag_key>:<bucket value>")`, so the same user always sees the same variant, and different flags bucket the same user independently. A partial rollout never matches a context that lacks the bucketing attribute, so anonymous traffic does not flip between variants.
 
-**Operators:** `eq`, `neq`, `in`, `not_in`, `contains`, `starts_with`, `ends_with`, `gt`, `gte`, `lt`, `lte`, `semver_eq`, `semver_gt`, `semver_gte`, `semver_lt`, `semver_lte`, `exists`. Comparisons treat `42` and `"42"` as equal, because context often arrives as strings. A missing attribute never matches, including for `neq` and `not_in`. The `semver_*` operators follow semver precedence, so `2.3.0-beta.1` is below `2.3.0`, and a value that is not a version never matches.
-
-**Optional fields:** `description`, `owner`, `tags`, and `expires`. An `expires` date such as `"2027-03-31"` is never enforced at runtime. CI warns when it is near, and the weekly stale-flags workflow keeps an issue listing flags that are past it.
+**Operators:** `eq`, `neq`, `in`, `not_in`, `contains`, `starts_with`, `ends_with`, `gt`, `gte`, `lt`, `lte`, `semver_eq`, `semver_gt`, `semver_gte`, `semver_lt`, `semver_lte`, `exists`. Comparisons treat `42` and `"42"` as equal, because context often arrives as strings. A missing attribute never matches, including for `neq` and `not_in`. The `semver_*` operators follow semver precedence, so `2.3.0-beta.1` is below `2.3.0`.
 
 ### Segments
 
-A segment is a reusable audience in `segments/<key>.json`. Rules reference it with `{ "segment": "beta_testers" }` instead of repeating the same conditions in every flag.
+A segment is a reusable audience in `segments/<key>.json`, referenced from rules with `{ "segment": "beta_testers" }`.
 
 ```json
 {
   "key": "beta_testers",
-  "description": "Customers who opted into the beta programme",
   "conditions": [
     { "attribute": "beta_opt_in", "operator": "eq", "value": true },
     { "attribute": "plan", "operator": "in", "value": ["pro", "enterprise"] }
@@ -122,11 +125,11 @@ A segment is a reusable audience in `segments/<key>.json`. Rules reference it wi
 }
 ```
 
-Segment conditions are ANDed. Segments cannot reference other segments. Referencing a segment that does not exist is a validation error, and the PR preview lists which flags are affected when a segment changes.
+Segment conditions are ANDed and cannot nest. Referencing a missing segment is a validation error. The preview comment lists which flags a segment change affects.
 
 ### Fixtures
 
-Files in `tests/` pin down what a flag must return for a given context, so a rule edit that accidentally exposes something fails the PR:
+Files in `tests/` pin what a flag must return for a context, so a rule edit that accidentally exposes something fails the PR:
 
 ```json
 [
@@ -141,19 +144,20 @@ Files in `tests/` pin down what a flag must return for a given context, so a rul
 
 `expect` may contain any of `value`, `reason`, and `rule`. Only the fields present are checked.
 
-### Command line
+## Command line
 
 ```sh
 npx opsgit-flags create new_banner --default false --owner growth --expires 2027-06-30
-npx opsgit-flags create new_banner ... --pr      # also branch, commit, push, and open the PR
+npx opsgit-flags create new_banner ... --pr          # also branch, commit, push, open the PR
 npx opsgit-flags list
 npx opsgit-flags explain new_checkout_v2 -c environment=production -c country=US -c user_id=usr_1
 npx opsgit-flags validate
+npx opsgit-flags check                               # run fixtures
+npx opsgit-flags diff origin/main                    # the preview comment, printed
+npx opsgit-flags stats --days 30                     # evaluations per flag, and flags with no traffic
 ```
 
-`explain` prints every rule with a tick or cross per condition and, for partial rollouts, the user's bucket, so "why does this user see X" takes one command instead of a debugging session.
-
-Run `npm run validate` and `npm run check` locally to see exactly what CI will report.
+`explain` prints every rule with a tick or cross per condition and, for partial rollouts, the user's bucket. `stats` reads Workers Analytics Engine and needs `CLOUDFLARE_API_TOKEN` with *Account Analytics: Read* plus `CLOUDFLARE_ACCOUNT_ID` in the environment.
 
 ## API
 
@@ -162,12 +166,12 @@ Every route except `/health` requires `Authorization: Bearer <key>` or `X-API-Ke
 | Route | Key | Purpose |
 | --- | --- | --- |
 | `GET /health` | none | Flag count, bundle ETag, build time. |
-| `GET /v1/flags` | server | Whole bundle with rules. Supports `If-None-Match` and answers `304`. |
+| `GET /v1/flags` | server | Whole bundle with rules and segments. Supports `If-None-Match` and answers `304`. |
 | `GET /v1/flags/:key` | server | One flag definition. |
 | `POST /v1/evaluate` | client or server | `{ "flag_key": "...", "context": { ... } }` → `{ key, value, reason, rule?, etag, evaluated_at }` |
 | `POST /v1/evaluate-all` | client or server | `{ "context": { ... } }` → every flag's `{ value, reason, rule? }` |
 
-`reason` is one of `RULE_MATCH`, `DEFAULT`, `FLAG_DISABLED`. An unknown flag is a `404` with `reason: FLAG_NOT_FOUND`.
+`reason` is one of `RULE_MATCH`, `DEFAULT`, `FLAG_DISABLED`. An unknown flag is a `404` with `reason: FLAG_NOT_FOUND`. Client keys are rate limited per key and caller IP (120 requests per minute by default) so a leaked key cannot drain your request quota.
 
 Context attributes must be strings, numbers, or booleans. When the caller omits them, `country`, `region`, `city`, `continent`, `timezone`, `asn`, and `colo` are filled in from Cloudflare's view of the request. For server-to-server calls that is your backend's location, not your user's, so pass them explicitly.
 
@@ -183,7 +187,7 @@ npm install @opsgit/flags-sdk
 import { FlagsClient } from "@opsgit/flags-sdk";
 
 const flags = await FlagsClient.init({
-  baseUrl: "https://opsgit-flags.you.workers.dev",
+  baseUrl: "https://my-flags.you.workers.dev",
   apiKey: process.env.FLAGS_SERVER_KEY!,
 });
 
@@ -203,49 +207,42 @@ const { flags: values } = await flags.evaluateAll({ user_id, environment: "produ
 if (values.new_checkout_v2.value === true) { /* ... */ }
 ```
 
-The SDK is a thin wrapper around `@opsgit/core`, which is a pure evaluation library with no I/O. Use it directly if you want to embed the bundle JSON in your own process.
+`@opsgit/core` is the pure evaluation library underneath, with no I/O. Use it directly to embed the bundle JSON in your own process.
 
 ## Security model
 
-- **Two key types.** Server keys can read rules. Client keys can only evaluate. Ship client keys to browsers freely; the worst case is that someone evaluates flags for made-up contexts.
+- **Two key types.** Server keys can read rules. Client keys can only evaluate and are rate limited. Ship client keys to browsers freely.
 - **Keys are Worker secrets**, compared by hash in constant time. Rotate by adding a new key to the list, deploying clients, then removing the old one.
 - **Who can change a flag** is whoever can merge to `main`. Use branch protection plus `.github/CODEOWNERS` to require review from flag owners.
 - **A private repo is strongly recommended.** Flag names and descriptions reveal unreleased work.
 
-## Limits worth knowing
+## This repository
 
-- Workers free tier: 100k requests per day, 10ms CPU per request. Evaluation uses a fraction of a millisecond.
-- Bundle size: Worker scripts can be up to 3MB on the free tier. Thousands of flags fit.
-- Propagation: a merge is live globally within a few seconds of `wrangler deploy` finishing. Backend SDKs see it on their next poll.
-
-## Repository layout
+This is the engine, and it is also a working flags repository that dogfoods its own action.
 
 ```
-flags/              one JSON file per flag           ← the directories most people touch
-segments/           reusable audiences                ←
-tests/              expected outcomes per context     ←
-schema/             JSON Schema for editor support
-packages/core/      evaluation + validation library, zero dependencies
-packages/sdk/       @opsgit/flags-sdk
-worker/             the Cloudflare Worker; flags.generated.json is built, not committed
-scripts/            validate, check (fixtures), build, diff (PR preview), stale, cli
-.github/workflows/  validate.yml on PRs, deploy.yml on merge to main, stale-flags.yml weekly
+flags/ segments/ tests/ schema/   this repo's own flags, exactly as a customer repo looks
+action/                           composite GitHub Action customers reference
+packages/core/                    @opsgit/core: evaluation + validation, zero dependencies   (MIT)
+packages/sdk/                     @opsgit/flags-sdk                                          (MIT)
+packages/cli/                     opsgit-flags: the CLI, with init templates                 (MIT)
+worker/                           the Cloudflare Worker; flags.generated.json is built, not committed
+.github/workflows/                validate.yml (PRs), deploy.yml (main), stale-flags.yml (weekly), release.yml (tags)
 ```
 
 ```sh
-npm run validate   # check flag and segment files, no install needed
-npm run check      # run fixtures, no install needed
-npm test           # core tests, no install needed
-npm run build      # build core, sdk, and the flag bundle
+npm ci && npm run build
+npm run test:all      # core, SDK, and Worker tests
 npm run typecheck
-npm run test:sdk
-npm run deploy     # build + wrangler deploy from your machine
+npm run validate && npm run check
+npm run deploy        # build + wrangler deploy from your machine
+npm run release 0.2.0 # bump all packages, commit, tag; push the tag to publish
 ```
+
+Releases publish the three packages to npm with provenance via trusted publishing, and move the `v0` tag that customer workflows reference.
 
 ## Roadmap
 
-- `opsgit-flags init` to install the workflows and directories into an existing repo, once the packages are published to npm
 - Per-environment bundles so staging rules never ship to production
-- Evaluation counts in Workers Analytics Engine and a `/stats` page that spots unused flags
 - React hook and server middleware packages
 - Deploy to Cloudflare button once the template repo is public
