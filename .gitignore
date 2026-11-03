@@ -5,3 +5,4 @@ dist/
 worker/src/flags.generated.json
 *.log
 .DS_Store
+*.local
