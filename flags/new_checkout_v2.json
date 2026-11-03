@@ -38,11 +38,12 @@
           "operator": "in",
           "value": [
             "US",
-            "CA"
+            "CA",
+            "GB"
           ]
         }
       ],
-      "rollout": 50,
+      "rollout": 75,
       "value": true
     }
   ]
