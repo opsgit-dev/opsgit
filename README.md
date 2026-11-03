@@ -248,6 +248,12 @@ npm run release 0.2.0 # bump all packages, commit, tag; push the tag to publish
 
 Releases publish the three packages to npm with provenance via trusted publishing, and move the `v0` tag that customer workflows reference.
 
+## License
+
+The engine in this repository (the Worker, the action, the workflows) is under the [Functional Source License, Version 1.1, ALv2 Future License](LICENSE.md). In short: use it, modify it, run it for your company, build on it. The one thing you may not do is offer it, or something substantially the same, as a competing commercial product. Each release converts to Apache 2.0 two years after it ships.
+
+The three npm packages, `@opsgit/core`, `@opsgit/flags-sdk` and `opsgit-flags`, are MIT so there is never any question about embedding them in your own apps.
+
 ## Roadmap
 
 - Per-environment bundles so staging rules never ship to production
