@@ -17,7 +17,7 @@ const HELP = `opsgit-flags <command> [options]
   init                 Set up this repository: dirs, schemas, example flag, GitHub workflow
       --dir <path>  --worker-name <name>  --action-ref <owner/repo/action@ref>  --force
   create <key>         Create flags/<key>.json
-      --default <json>  --description <text>  --owner <name>  --expires <date>  --pr
+      --default <json>  --description <text>  --owner <name>  --expires <date>  --client  --pr
   list                 Show every flag with its state
   explain <key>        Show how a flag evaluates for a context
       -c attr=value (repeatable)  --context <json>

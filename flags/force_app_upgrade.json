@@ -3,13 +3,20 @@
   "key": "force_app_upgrade",
   "description": "Mobile clients below the minimum version get a blocking upgrade prompt",
   "owner": "mobile-team",
+  "client": true,
   "expires": "2027-03-31",
   "enabled": true,
   "default": false,
   "rules": [
     {
       "name": "below-minimum-version",
-      "conditions": [{ "attribute": "app_version", "operator": "semver_lt", "value": "2.3.0" }],
+      "conditions": [
+        {
+          "attribute": "app_version",
+          "operator": "semver_lt",
+          "value": "2.3.0"
+        }
+      ],
       "value": true
     }
   ]

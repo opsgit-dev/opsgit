@@ -1,5 +1,5 @@
 import bundleJson from "./flags.generated.json" with { type: "json" };
-import { evaluate, evaluateAll, type Bundle, type Context, type Scalar } from "@opsgit/core";
+import { evaluate, type Bundle, type Context, type Evaluation, type Flag, type Scalar } from "@opsgit/core";
 
 /** Cloudflare rate limiting binding; see [[ratelimits]] in wrangler.toml. */
 interface RateLimiter {
@@ -170,6 +170,17 @@ function etagMatches(request: Request): boolean {
     .some((t) => t === BUNDLE.etag || t === "*");
 }
 
+/** Client keys only ever see flags that opted in with `client: true`, and never see rule names. */
+function visibleTo(role: Role, flag: Flag | undefined): flag is Flag {
+  return !!flag && (role === "server" || flag.client === true);
+}
+
+function forRole(role: Role, evaluation: Evaluation): Evaluation {
+  if (role === "server") return evaluation;
+  const { rule: _hidden, ...rest } = evaluation;
+  return rest;
+}
+
 function record(env: Env, role: Role, evaluations: { key: string; reason: string; rule?: string }[]): void {
   if (!env.EVALUATIONS) return;
   for (const e of evaluations.slice(0, MAX_POINTS_PER_REQUEST)) {
@@ -227,7 +238,13 @@ export default {
     const single = path.match(/^\/v1\/flags\/([^/]+)$/);
     if (single && request.method === "GET") {
       if (role !== "server") return error(request, env, 403, "flag definitions require a server key");
-      const flag = BUNDLE.flags[decodeURIComponent(single[1])];
+      let key: string;
+      try {
+        key = decodeURIComponent(single[1]);
+      } catch {
+        return error(request, env, 400, "malformed flag key");
+      }
+      const flag = BUNDLE.flags[key];
       if (!flag) return error(request, env, 404, "flag not found", { reason: "FLAG_NOT_FOUND" });
       return json(request, env, flag, 200, { etag: `"${BUNDLE.etag}"` });
     }
@@ -239,17 +256,22 @@ export default {
       const key = parsed.body.flag_key ?? parsed.body.key;
       if (typeof key !== "string") return error(request, env, 400, 'missing "flag_key"');
       const flag = BUNDLE.flags[key];
-      if (!flag) return error(request, env, 404, "flag not found", { key, reason: "FLAG_NOT_FOUND" });
+      // A server-only flag looks exactly like a missing one to a client key.
+      if (!visibleTo(role, flag)) return error(request, env, 404, "flag not found", { key, reason: "FLAG_NOT_FOUND" });
       const result = evaluate(flag, buildContext(parsed.body.context, request), BUNDLE.segments ?? {});
       record(env, role, [result]);
-      return json(request, env, { ...result, etag: BUNDLE.etag, evaluated_at: new Date().toISOString() });
+      return json(request, env, { ...forRole(role, result), etag: BUNDLE.etag, evaluated_at: new Date().toISOString() });
     }
 
     // POST /v1/evaluate-all -> every flag for one context, for browsers and mobile
     if (path === "/v1/evaluate-all" && request.method === "POST") {
       const parsed = await readJsonBody(request);
       if (!parsed.ok) return error(request, env, 400, parsed.message);
-      const flags = evaluateAll(BUNDLE, buildContext(parsed.body.context, request));
+      const context = buildContext(parsed.body.context, request);
+      const flags: Record<string, Evaluation> = {};
+      for (const flag of Object.values(BUNDLE.flags)) {
+        if (visibleTo(role, flag)) flags[flag.key] = forRole(role, evaluate(flag, context, BUNDLE.segments ?? {}));
+      }
       record(env, role, Object.values(flags));
       return json(request, env, { etag: BUNDLE.etag, evaluated_at: new Date().toISOString(), flags });
     }

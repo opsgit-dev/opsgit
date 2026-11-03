@@ -81,6 +81,12 @@ export interface Flag {
   owner?: string;
   /** ISO date after which the flag should be removed. Reported, never enforced. */
   expires?: string;
+  /**
+   * Whether browsers and mobile apps (client keys) may evaluate this flag.
+   * Default false: the flag is invisible to client keys, so its name and value
+   * never leave your servers.
+   */
+  client?: boolean;
 }
 
 /** A reusable, named audience. Conditions are ANDed, attribute conditions only. */

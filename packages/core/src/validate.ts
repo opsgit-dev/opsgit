@@ -11,7 +11,7 @@ import { parseSemver } from "./semver.ts";
 
 export const KEY_PATTERN = /^[a-z0-9][a-z0-9_.-]{0,99}$/;
 
-const FLAG_FIELDS = new Set(["$schema", "key", "description", "enabled", "default", "rules", "tags", "owner", "expires"]);
+const FLAG_FIELDS = new Set(["$schema", "key", "description", "enabled", "default", "rules", "tags", "owner", "expires", "client"]);
 const RULE_FIELDS = new Set(["name", "conditions", "rollout", "bucket_by", "value"]);
 const CONDITION_FIELDS = new Set(["attribute", "operator", "value"]);
 const SEGMENT_FIELDS = new Set(["$schema", "key", "description", "conditions"]);
@@ -66,6 +66,7 @@ export function validateFlag(input: unknown, options: ValidateOptions = {}): str
   if ("tags" in input && !(Array.isArray(input.tags) && input.tags.every((t) => typeof t === "string"))) {
     errors.push("tags: must be an array of strings");
   }
+  if ("client" in input && typeof input.client !== "boolean") errors.push("client: must be true or false");
   if ("expires" in input) {
     const e = input.expires;
     if (typeof e !== "string" || !/^\d{4}-\d{2}-\d{2}/.test(e) || Number.isNaN(Date.parse(e))) {

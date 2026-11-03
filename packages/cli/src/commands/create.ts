@@ -15,10 +15,11 @@ export async function create(args: string[], root: string): Promise<void> {
       owner: { type: "string" },
       expires: { type: "string" },
       pr: { type: "boolean", default: false },
+      client: { type: "boolean", default: false },
     },
   });
   const key = positionals[0];
-  if (!key) fail("usage: opsgit-flags create <key> [--default <json>] [--description <text>] [--owner <name>] [--expires <date>] [--pr]");
+  if (!key) fail("usage: opsgit-flags create <key> [--default <json>] [--description <text>] [--owner <name>] [--expires <date>] [--client] [--pr]");
   if (!KEY_PATTERN.test(key)) fail(`"${key}" is not a valid key: lowercase letters, digits, "_", ".", "-" only`);
 
   let defaultValue: unknown;
@@ -40,6 +41,7 @@ export async function create(args: string[], root: string): Promise<void> {
   if (values.description) flag.description = values.description;
   if (values.owner) flag.owner = values.owner;
   if (values.expires) flag.expires = values.expires;
+  if (values.client) flag.client = true;
   flag.enabled = false;
   flag.default = defaultValue;
   flag.rules = [];

@@ -31,6 +31,9 @@ function diffFlag(before: Flag, after: Flag): string[] {
   if (before.enabled !== after.enabled) lines.push(`- **enabled**: ${before.enabled} → **${after.enabled}**${after.enabled ? WARN : ""}`);
   if (!same(before.default, after.default)) lines.push(`- **default**: ${j(before.default)} → ${j(after.default)}`);
   if (before.expires !== after.expires) lines.push(`- **expires**: ${before.expires ?? "never"} → ${after.expires ?? "never"}`);
+  if ((before.client ?? false) !== (after.client ?? false)) {
+    lines.push(after.client ? `- **client**: now visible to browsers and mobile apps${WARN}` : `- **client**: no longer visible to client keys`);
+  }
   if (before.description !== after.description) lines.push(`- description updated`);
   if (before.owner !== after.owner) lines.push(`- **owner**: ${before.owner ?? "none"} → ${after.owner ?? "none"}`);
 
@@ -115,6 +118,7 @@ export async function renderDiff(baseRef: string, root: string): Promise<string>
   section("Flag", baseFlags, flags, (f) => [
     `- **enabled**: ${f.enabled}`,
     `- **default**: ${j(f.default)}`,
+    ...(f.client ? [`- **client**: visible to browsers and mobile apps`] : []),
     ...(f.rules ?? []).map((r) => `- rule **${r.name}**: ${describeRule(r)}`),
     ...(f.expires ? [`- expires ${f.expires}`] : []),
   ], diffFlag);

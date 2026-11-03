@@ -30,16 +30,16 @@ Flags for `--worker-name` and `--action-ref` let you change the worker's name an
 npx opsgit-flags create dark_mode --default false --owner web --expires 2027-06-30
 ```
 
-Writes `flags/dark_mode.json`, disabled, with no rules. Add `--pr` and it also branches, commits, pushes and opens the pull request.
+Writes `flags/dark_mode.json`, disabled, with no rules. Add `--client` if browsers or mobile apps need to read it; flags are server-only unless you say so. Add `--pr` and it also branches, commits, pushes and opens the pull request.
 
 ```sh
 npx opsgit-flags list
 ```
 
 ```
-KEY             STATE     DEFAULT  RULES  OWNER  EXPIRES
-dark_mode       disabled  false    0      web    2027-06-30
-new_checkout    enabled   false    3      pay
+KEY             STATE     DEFAULT  CLIENT  RULES  OWNER  EXPIRES
+dark_mode       disabled  false            0      web    2027-06-30
+new_checkout    enabled   false    yes     3      pay
 ```
 
 ```sh

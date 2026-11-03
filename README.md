@@ -106,6 +106,7 @@ One file per flag in `flags/<key>.json`. The `key` must equal the file name.
 | `rules[].bucket_by` | Context attribute used for bucketing. Default `user_id`. |
 | `rules[].value` | Any JSON value, served when the rule matches. |
 | `expires` | ISO date. Never enforced at runtime; CI warns as it nears and a weekly issue lists flags past it. |
+| `client` | `true` lets browsers and mobile apps (client keys) evaluate this flag. **Default `false`**: the flag's name and value never leave your servers. |
 
 **Rollouts are deterministic.** A context is bucketed by `murmur3("<flag_key>:<bucket value>")`, so the same user always sees the same variant, and different flags bucket the same user independently. A partial rollout never matches a context that lacks the bucketing attribute, so anonymous traffic does not flip between variants.
 
@@ -213,8 +214,12 @@ if (values.new_checkout_v2.value === true) { /* ... */ }
 
 ## Security model
 
-- **Two key types.** Server keys can read rules. Client keys can only evaluate and are rate limited. Ship client keys to browsers freely.
-- **Keys are Worker secrets**, compared by hash in constant time. Rotate by adding a new key to the list, deploying clients, then removing the old one.
+- **Two key types.** Server keys can read rules. Client keys can only evaluate, only see flags marked `client: true`, never see rule names, and are rate limited. Ship client keys to browsers freely: the worst case is someone evaluating your client-visible flags for made-up contexts.
+- **Server-only by default.** A flag without `client: true` is invisible to client keys, and asking for it returns the same 404 as a flag that does not exist. Your unreleased feature names stay on the server.
+- **Keys are Worker secrets**, compared by hash in constant time, never logged. Rotate by adding a new key to the list, deploying clients, then removing the old one.
+- **Nothing is stored.** The Worker keeps no database and writes no request context anywhere. With analytics on, it records the flag key, reason, rule name and key role per evaluation, and nothing about the user.
+- **Scope the Cloudflare token.** The "Edit Cloudflare Workers" template is the easy choice, but a custom token with only *Workers Scripts: Edit* and *Account Settings: Read* is enough to deploy and is what a leaked secret would be limited to.
+- **Pinned supply chain.** Workflows and the action reference `actions/checkout` and `actions/setup-node` by commit hash, and the engine installs from a lockfile. Customers can pin `pysavantcodes/opsgit/action` to a commit hash too instead of the moving `v0` tag.
 - **Who can change a flag** is whoever can merge to `main`. Use branch protection plus `.github/CODEOWNERS` to require review from flag owners.
 - **A private repo is strongly recommended.** Flag names and descriptions reveal unreleased work.
 

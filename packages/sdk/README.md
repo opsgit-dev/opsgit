@@ -75,6 +75,8 @@ if (values.new_checkout.value === true) {
 
 Call `evaluateAll` once per session and keep the result. There's also `evaluate(key, context)` for a single flag.
 
+Client keys only see flags that have `"client": true` in their JSON. Everything else is server-only and comes back as a 404, the same as a flag that doesn't exist. Responses to client keys also leave out the matching rule's name, so your targeting stays private.
+
 ## In tests
 
 Skip the network entirely:

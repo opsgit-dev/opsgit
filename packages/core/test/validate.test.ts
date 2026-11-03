@@ -62,3 +62,8 @@ test("validates rule shape", () => {
   assert.match(text, /rules\[4\]\.value: required/);
   assert.match(text, /rules\[4\]\.conditions\[0\]\.value: "eq" needs a string/);
 });
+
+test("client must be a boolean", () => {
+  assert.deepEqual(validateFlag({ ...valid, client: true }), []);
+  assert.match(validateFlag({ ...valid, client: "yes" }).join(), /client: must be true or false/);
+});

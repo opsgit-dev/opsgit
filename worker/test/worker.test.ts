@@ -57,14 +57,14 @@ test("bundle has an ETag and honours If-None-Match", async () => {
 });
 
 test("evaluate resolves rules, segments, and rollouts", async () => {
-  const staging = await (await call("/v1/evaluate", { method: "POST", key: "client-a", json: { flag_key: "new_checkout_v2", context: { environment: "staging" } } })).json();
+  const staging = await (await call("/v1/evaluate", { method: "POST", key: "server-a", json: { flag_key: "new_checkout_v2", context: { environment: "staging" } } })).json();
   assert.equal(staging.value, true);
   assert.equal(staging.rule, "staging-everyone");
 
-  const beta = await (await call("/v1/evaluate", { method: "POST", key: "client-a", json: { flag_key: "new_checkout_v2", context: { environment: "production", beta_opt_in: true, plan: "pro" } } })).json();
+  const beta = await (await call("/v1/evaluate", { method: "POST", key: "server-a", json: { flag_key: "new_checkout_v2", context: { environment: "production", beta_opt_in: true, plan: "pro" } } })).json();
   assert.equal(beta.rule, "beta-testers");
 
-  const anon = await (await call("/v1/evaluate", { method: "POST", key: "client-a", json: { flag_key: "new_checkout_v2", context: { environment: "production", country: "US" } } })).json();
+  const anon = await (await call("/v1/evaluate", { method: "POST", key: "server-a", json: { flag_key: "new_checkout_v2", context: { environment: "production", country: "US" } } })).json();
   assert.equal(anon.reason, "DEFAULT", "no user_id means no rollout");
 });
 
@@ -76,12 +76,30 @@ test("evaluate rejects bad input", async () => {
   assert.equal(big.status, 413 === big.status ? 413 : 400);
 });
 
-test("evaluate-all returns every flag and drops non-scalar context", async () => {
-  const res = await call("/v1/evaluate-all", { method: "POST", key: "client-a", json: { context: { environment: "staging", nested: { a: 1 }, list: [1] } } });
+test("evaluate-all returns every flag to server keys and drops non-scalar context", async () => {
+  const res = await call("/v1/evaluate-all", { method: "POST", key: "server-a", json: { context: { environment: "staging", nested: { a: 1 }, list: [1] } } });
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.ok(Object.keys(body.flags).length >= 3);
+  assert.ok(Object.keys(body.flags).length >= 4);
   assert.equal(body.flags.new_checkout_v2.value, true);
+  assert.equal(body.flags.new_checkout_v2.rule, "staging-everyone", "server keys see rule names");
+});
+
+test("client keys only see flags marked client: true, and never rule names", async () => {
+  const all = await (await call("/v1/evaluate-all", { method: "POST", key: "client-a", json: { context: { environment: "staging" } } })).json();
+  assert.ok("new_checkout_v2" in all.flags, "client-visible flag is returned");
+  assert.ok(!("api_rate_limit" in all.flags), "server-only flag is absent");
+  assert.equal(all.flags.new_checkout_v2.value, true);
+  assert.equal(all.flags.new_checkout_v2.rule, undefined, "rule name is stripped");
+
+  const hidden = await call("/v1/evaluate", { method: "POST", key: "client-a", json: { flag_key: "api_rate_limit" } });
+  assert.equal(hidden.status, 404, "server-only flag is indistinguishable from a missing one");
+  const visible = await (await call("/v1/evaluate", { method: "POST", key: "server-a", json: { flag_key: "api_rate_limit", context: { plan: "pro" } } })).json();
+  assert.equal(visible.value, 1000);
+});
+
+test("malformed flag key in the path is a 400, not a crash", async () => {
+  assert.equal((await call("/v1/flags/%E0%A4%A", { key: "server-a" })).status, 400);
 });
 
 test("CORS preflight and allowed-origin lists", async () => {
