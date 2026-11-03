@@ -31,18 +31,19 @@
       "value": true
     },
     {
-      "name": "north-america-50pct",
+      "name": "north-america-75pct",
       "conditions": [
         {
           "attribute": "country",
           "operator": "in",
           "value": [
             "US",
-            "CA"
+            "CA",
+            "GB"
           ]
         }
       ],
-      "rollout": 50,
+      "rollout": 75,
       "value": true
     }
   ]
