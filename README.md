@@ -173,7 +173,7 @@ Every route except `/health` requires `Authorization: Bearer <key>` or `X-API-Ke
 | `POST /v1/evaluate` | client or server | `{ "flag_key": "...", "context": { ... } }` → `{ key, value, reason, rule?, etag, evaluated_at }` |
 | `POST /v1/evaluate-all` | client or server | `{ "context": { ... } }` → every flag's `{ value, reason, rule? }` |
 
-`reason` is one of `RULE_MATCH`, `DEFAULT`, `FLAG_DISABLED`. An unknown flag is a `404` with `reason: FLAG_NOT_FOUND`. Client keys are rate limited per key and caller IP (120 requests per minute by default) so a leaked key cannot drain your request quota.
+`reason` is one of `RULE_MATCH`, `DEFAULT`, `FLAG_DISABLED`. An unknown flag is a `404` with `reason: FLAG_NOT_FOUND`. Client keys are rate limited per key and caller IP (120 requests per minute by default) so a leaked key cannot drain your request quota. Cloudflare enforces the limit per data center and counts approximately, so a caller whose traffic is spread across several locations can exceed it; treat it as abuse protection, not a quota.
 
 Context attributes must be strings, numbers, or booleans. When the caller omits them, `country`, `region`, `city`, `continent`, `timezone`, `asn`, and `colo` are filled in from Cloudflare's view of the request. For server-to-server calls that is your backend's location, not your user's, so pass them explicitly.
 
