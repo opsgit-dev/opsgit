@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "opsgit-flags": "./dist/cli.js"
+    "opsgit-flags": "dist/cli.js"
   },
   "files": [
     "dist",
