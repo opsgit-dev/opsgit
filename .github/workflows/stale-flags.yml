@@ -1,0 +1,45 @@
+name: Stale flags
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Find expired and expiring flags
+        run: node scripts/stale.ts > stale.md
+      - name: Open, update, or close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="Stale feature flags"
+          existing=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$title\")] | first | .number // empty")
+          if [ ! -s stale.md ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" --comment "No expired or expiring flags remain. Closing."
+              echo "closed issue $existing"
+            else
+              echo "nothing stale"
+            fi
+            exit 0
+          fi
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$REPO" --body-file stale.md
+            echo "updated issue $existing"
+          else
+            gh issue create --repo "$REPO" --title "$title" --body-file stale.md --label "flags"
+            echo "created issue"
+          fi

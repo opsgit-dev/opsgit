@@ -25,6 +25,12 @@ Feature flags that live in your Git repo and run on your own Cloudflare account.
 
 Killing a flag is `git revert` plus the deploy time of the workflow, typically one to two minutes end to end.
 
+### What a pull request gets
+
+- **Validation** of every flag, segment, and fixture file, with errors annotated on the exact line.
+- **A preview comment** describing the change in words: "rule north-america-50pct rollout: 50% → **75%** ⚠️". Reviewers see the effect, not a JSON diff. Changes that widen exposure are marked.
+- **Fixture checks** so that expected outcomes in `tests/` still hold.
+
 ## Quickstart
 
 1. **Use this repo as a template** and clone it.
@@ -46,7 +52,7 @@ Killing a flag is `git revert` plus the deploy time of the workflow, typically o
    curl https://opsgit-flags.<your-subdomain>.workers.dev/health
    ```
 
-6. **Edit a flag**, open a PR, watch validation run, merge. Done.
+6. **Edit a flag**, open a PR, read the preview comment, merge. Done.
 
 Prefer no GitHub secrets? Connect the repo in the Cloudflare dashboard under Workers → Create → Import a repository, set the root directory to `worker` and the build command to `cd .. && npm ci && npm run build`. Cloudflare then deploys on every push to `main` and you can delete `deploy.yml`.
 
@@ -97,9 +103,57 @@ One file per flag in `flags/<key>.json`. The `key` must equal the file name. Add
 
 **Rollouts are deterministic.** A context is bucketed by `murmur3("<flag_key>:<bucket value>")`, so the same user always sees the same variant, and different flags bucket the same user independently. A partial rollout never matches a context that lacks the bucketing attribute, so anonymous traffic does not flip between variants.
 
-**Operators:** `eq`, `neq`, `in`, `not_in`, `contains`, `starts_with`, `ends_with`, `gt`, `gte`, `lt`, `lte`, `exists`. Comparisons treat `42` and `"42"` as equal, because context often arrives as strings. A missing attribute never matches, including for `neq` and `not_in`.
+**Operators:** `eq`, `neq`, `in`, `not_in`, `contains`, `starts_with`, `ends_with`, `gt`, `gte`, `lt`, `lte`, `semver_eq`, `semver_gt`, `semver_gte`, `semver_lt`, `semver_lte`, `exists`. Comparisons treat `42` and `"42"` as equal, because context often arrives as strings. A missing attribute never matches, including for `neq` and `not_in`. The `semver_*` operators follow semver precedence, so `2.3.0-beta.1` is below `2.3.0`, and a value that is not a version never matches.
 
-Run `npm run validate` locally to see the same errors CI will report.
+**Optional fields:** `description`, `owner`, `tags`, and `expires`. An `expires` date such as `"2027-03-31"` is never enforced at runtime. CI warns when it is near, and the weekly stale-flags workflow keeps an issue listing flags that are past it.
+
+### Segments
+
+A segment is a reusable audience in `segments/<key>.json`. Rules reference it with `{ "segment": "beta_testers" }` instead of repeating the same conditions in every flag.
+
+```json
+{
+  "key": "beta_testers",
+  "description": "Customers who opted into the beta programme",
+  "conditions": [
+    { "attribute": "beta_opt_in", "operator": "eq", "value": true },
+    { "attribute": "plan", "operator": "in", "value": ["pro", "enterprise"] }
+  ]
+}
+```
+
+Segment conditions are ANDed. Segments cannot reference other segments. Referencing a segment that does not exist is a validation error, and the PR preview lists which flags are affected when a segment changes.
+
+### Fixtures
+
+Files in `tests/` pin down what a flag must return for a given context, so a rule edit that accidentally exposes something fails the PR:
+
+```json
+[
+  {
+    "name": "anonymous US traffic never enters the rollout",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "production", "country": "US" },
+    "expect": { "value": false, "reason": "DEFAULT" }
+  }
+]
+```
+
+`expect` may contain any of `value`, `reason`, and `rule`. Only the fields present are checked.
+
+### Command line
+
+```sh
+npx opsgit-flags create new_banner --default false --owner growth --expires 2027-06-30
+npx opsgit-flags create new_banner ... --pr      # also branch, commit, push, and open the PR
+npx opsgit-flags list
+npx opsgit-flags explain new_checkout_v2 -c environment=production -c country=US -c user_id=usr_1
+npx opsgit-flags validate
+```
+
+`explain` prints every rule with a tick or cross per condition and, for partial rollouts, the user's bucket, so "why does this user see X" takes one command instead of a debugging session.
+
+Run `npm run validate` and `npm run check` locally to see exactly what CI will report.
 
 ## API
 
@@ -167,17 +221,20 @@ The SDK is a thin wrapper around `@opsgit/core`, which is a pure evaluation libr
 ## Repository layout
 
 ```
-flags/              one JSON file per flag           ← the only directory most people touch
+flags/              one JSON file per flag           ← the directories most people touch
+segments/           reusable audiences                ←
+tests/              expected outcomes per context     ←
 schema/             JSON Schema for editor support
 packages/core/      evaluation + validation library, zero dependencies
 packages/sdk/       @opsgit/flags-sdk
 worker/             the Cloudflare Worker; flags.generated.json is built, not committed
-scripts/            validate.ts (CI check) and build.ts (bundle)
-.github/workflows/  validate.yml on PRs, deploy.yml on merge to main
+scripts/            validate, check (fixtures), build, diff (PR preview), stale, cli
+.github/workflows/  validate.yml on PRs, deploy.yml on merge to main, stale-flags.yml weekly
 ```
 
 ```sh
-npm run validate   # check flag files, no install needed
+npm run validate   # check flag and segment files, no install needed
+npm run check      # run fixtures, no install needed
 npm test           # core tests, no install needed
 npm run build      # build core, sdk, and the flag bundle
 npm run typecheck
@@ -187,8 +244,8 @@ npm run deploy     # build + wrangler deploy from your machine
 
 ## Roadmap
 
-- GitHub App that installs the workflows and `flags/` directory into an existing repo
-- `semver_gt` / `semver_lt` operators for app version targeting
+- `opsgit-flags init` to install the workflows and directories into an existing repo, once the packages are published to npm
 - Per-environment bundles so staging rules never ship to production
-- Evaluation logging to Workers Analytics Engine
+- Evaluation counts in Workers Analytics Engine and a `/stats` page that spots unused flags
+- React hook and server middleware packages
 - Deploy to Cloudflare button once the template repo is public

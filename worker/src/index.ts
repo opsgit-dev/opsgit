@@ -202,7 +202,7 @@ export default {
       if (typeof key !== "string") return error(request, env, 400, 'missing "flag_key"');
       const flag = BUNDLE.flags[key];
       if (!flag) return error(request, env, 404, "flag not found", { key, reason: "FLAG_NOT_FOUND" });
-      const result = evaluate(flag, buildContext(parsed.body.context, request));
+      const result = evaluate(flag, buildContext(parsed.body.context, request), BUNDLE.segments ?? {});
       return json(request, env, { ...result, etag: BUNDLE.etag, evaluated_at: new Date().toISOString() });
     }
 

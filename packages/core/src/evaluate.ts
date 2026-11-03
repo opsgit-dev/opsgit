@@ -1,13 +1,17 @@
-import type {
-  Bundle,
-  Condition,
-  Context,
-  Evaluation,
-  Flag,
-  Rule,
-  Scalar,
+import {
+  isSegmentCondition,
+  type AttributeCondition,
+  type Bundle,
+  type Condition,
+  type Context,
+  type Evaluation,
+  type Flag,
+  type Rule,
+  type Scalar,
+  type Segments,
 } from "./types.ts";
 import { bucket } from "./hash.ts";
+import { compareSemver, parseSemver } from "./semver.ts";
 
 function isScalar(v: unknown): v is Scalar {
   return typeof v === "string" || typeof v === "number" || typeof v === "boolean";
@@ -26,7 +30,14 @@ function compareNumeric(a: Scalar, b: Scalar, cmp: (x: number, y: number) => boo
   return cmp(x, y);
 }
 
-export function matchCondition(condition: Condition, context: Context): boolean {
+function compareVersions(a: Scalar, b: Scalar, cmp: (c: number) => boolean): boolean {
+  const x = parseSemver(a);
+  const y = parseSemver(b);
+  if (!x || !y) return false;
+  return cmp(compareSemver(x, y));
+}
+
+export function matchAttributeCondition(condition: AttributeCondition, context: Context): boolean {
   const actual = context[condition.attribute];
   const present = actual !== undefined && actual !== null;
 
@@ -60,9 +71,29 @@ export function matchCondition(condition: Condition, context: Context): boolean 
       return isScalar(expected) && compareNumeric(actual, expected, (x, y) => x < y);
     case "lte":
       return isScalar(expected) && compareNumeric(actual, expected, (x, y) => x <= y);
+    case "semver_eq":
+      return isScalar(expected) && compareVersions(actual, expected, (c) => c === 0);
+    case "semver_gt":
+      return isScalar(expected) && compareVersions(actual, expected, (c) => c > 0);
+    case "semver_gte":
+      return isScalar(expected) && compareVersions(actual, expected, (c) => c >= 0);
+    case "semver_lt":
+      return isScalar(expected) && compareVersions(actual, expected, (c) => c < 0);
+    case "semver_lte":
+      return isScalar(expected) && compareVersions(actual, expected, (c) => c <= 0);
     default:
       return false;
   }
+}
+
+/** A segment condition matches when every condition in the segment matches. An unknown segment never matches. */
+export function matchCondition(condition: Condition, context: Context, segments: Segments = {}): boolean {
+  if (isSegmentCondition(condition)) {
+    const segment = segments[condition.segment];
+    if (!segment) return false;
+    return segment.conditions.every((c) => matchAttributeCondition(c, context));
+  }
+  return matchAttributeCondition(condition, context);
 }
 
 /**
@@ -70,9 +101,9 @@ export function matchCondition(condition: Condition, context: Context): boolean 
  * the rollout percentage. A partial rollout with no bucketing attribute in
  * the context never matches, so unknown users never get a random variant.
  */
-export function matchRule(flagKey: string, rule: Rule, context: Context): boolean {
+export function matchRule(flagKey: string, rule: Rule, context: Context, segments: Segments = {}): boolean {
   for (const condition of rule.conditions) {
-    if (!matchCondition(condition, context)) return false;
+    if (!matchCondition(condition, context, segments)) return false;
   }
   const rollout = rule.rollout ?? 100;
   if (rollout >= 100) return true;
@@ -83,12 +114,12 @@ export function matchRule(flagKey: string, rule: Rule, context: Context): boolea
   return bucket(flagKey, String(bucketValue)) < rollout;
 }
 
-export function evaluate(flag: Flag, context: Context = {}): Evaluation {
+export function evaluate(flag: Flag, context: Context = {}, segments: Segments = {}): Evaluation {
   if (!flag.enabled) {
     return { key: flag.key, value: flag.default, reason: "FLAG_DISABLED" };
   }
   for (const rule of flag.rules ?? []) {
-    if (matchRule(flag.key, rule, context)) {
+    if (matchRule(flag.key, rule, context, segments)) {
       return { key: flag.key, value: rule.value, reason: "RULE_MATCH", rule: rule.name };
     }
   }
@@ -98,7 +129,7 @@ export function evaluate(flag: Flag, context: Context = {}): Evaluation {
 export function evaluateAll(bundle: Bundle, context: Context = {}): Record<string, Evaluation> {
   const out: Record<string, Evaluation> = {};
   for (const key of Object.keys(bundle.flags)) {
-    out[key] = evaluate(bundle.flags[key], context);
+    out[key] = evaluate(bundle.flags[key], context, bundle.segments ?? {});
   }
   return out;
 }

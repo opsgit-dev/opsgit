@@ -17,7 +17,11 @@
     "typecheck": "npm run build -w @opsgit/core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit",
     "dev": "npm run build && npm run dev -w worker",
     "deploy": "npm run build && npm run deploy -w worker",
-    "test:sdk": "node --test packages/sdk/test/*.test.ts"
+    "test:sdk": "node --test packages/sdk/test/*.test.ts",
+    "check": "node scripts/check.ts",
+    "diff": "node scripts/diff.ts",
+    "stale": "node scripts/stale.ts",
+    "flags": "node scripts/cli.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261023.1",
@@ -27,5 +31,8 @@
   "allowScripts": {
     "workerd@1.20261023.1": true,
     "esbuild@0.28.2": true
+  },
+  "bin": {
+    "opsgit-flags": "./scripts/cli.ts"
   }
 }

@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "flags/**"
+      - "segments/**"
+      - "tests/**"
       - "packages/**"
       - "scripts/**"
       - "worker/**"
@@ -21,12 +23,45 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # Flag validation and the core tests need no dependencies at all.
-      - name: Validate flag files
+      # Flag validation, fixtures, and the core tests need no dependencies at all.
+      - name: Validate flag and segment files
         run: npm run validate
+      - name: Run flag fixtures
+        run: npm run check
       - name: Core tests
         run: npm test
       - name: Install
         run: npm ci
-      - name: Typecheck and build bundle
+      - name: Typecheck, build bundle, SDK tests
         run: npm run build && npm run typecheck && npm run test:sdk
+
+  preview:
+    name: Post flag preview comment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Describe flag changes against the base branch
+        run: node scripts/diff.ts "origin/${{ github.base_ref }}" > preview.md
+      - name: Create or update the preview comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq '[.[] | select(.body | contains("<!-- opsgit-flags-preview -->"))] | first | .id // empty')
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@preview.md > /dev/null
+            echo "updated comment $existing"
+          else
+            gh api "repos/$REPO/issues/$PR/comments" -F body=@preview.md > /dev/null
+            echo "created comment"
+          fi

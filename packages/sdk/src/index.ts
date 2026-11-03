@@ -72,7 +72,7 @@ export class FlagsClient {
   /** Full evaluation with reason, or undefined for an unknown flag. */
   evaluation(key: string, context: Context = {}): Evaluation | undefined {
     const flag = this.#bundle?.flags[key];
-    return flag ? evaluate(flag, context) : undefined;
+    return flag ? evaluate(flag, context, this.#bundle?.segments ?? {}) : undefined;
   }
 
   /** The flag's value, or `fallback` when the flag does not exist. */

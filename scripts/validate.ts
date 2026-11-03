@@ -1,11 +1,12 @@
-import { loadFlags, report } from "./lib.ts";
+import { errorsOf, loadAll, report } from "./lib.ts";
 
-const { flags, problems } = await loadFlags();
+const { flags, segments, problems } = await loadAll();
 report(problems);
 
-const count = Object.keys(flags).length;
-if (problems.length > 0) {
-  console.error(`\n${problems.length} problem(s) in ${count + new Set(problems.map((p) => p.file)).size} file(s)`);
+const errors = errorsOf(problems);
+if (errors.length > 0) {
+  console.error(`\n${errors.length} problem(s) in ${new Set(errors.map((p) => p.file)).size} file(s)`);
   process.exit(1);
 }
-console.log(`${count} flag(s) valid: ${Object.keys(flags).join(", ")}`);
+const segmentNote = Object.keys(segments).length ? `, ${Object.keys(segments).length} segment(s)` : "";
+console.log(`${Object.keys(flags).length} flag(s) valid${segmentNote}: ${Object.keys(flags).join(", ")}`);

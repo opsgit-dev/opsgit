@@ -1,0 +1,5 @@
+[
+  { "name": "old build is forced", "flag": "force_app_upgrade", "context": { "app_version": "2.2.9" }, "expect": { "value": true } },
+  { "name": "minimum version passes", "flag": "force_app_upgrade", "context": { "app_version": "2.3.0" }, "expect": { "value": false } },
+  { "name": "unknown version is never forced", "flag": "force_app_upgrade", "context": {}, "expect": { "value": false, "reason": "DEFAULT" } }
+]

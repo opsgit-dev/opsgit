@@ -1,0 +1,32 @@
+[
+  {
+    "name": "staging always on",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "staging" },
+    "expect": { "value": true, "rule": "staging-everyone" }
+  },
+  {
+    "name": "beta testers on pro get it in production",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "production", "beta_opt_in": true, "plan": "pro", "country": "DE" },
+    "expect": { "value": true, "rule": "beta-testers" }
+  },
+  {
+    "name": "free plan beta opt-in is not a beta tester",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "production", "beta_opt_in": true, "plan": "free", "country": "DE" },
+    "expect": { "value": false, "reason": "DEFAULT" }
+  },
+  {
+    "name": "anonymous US traffic never enters the rollout",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "production", "country": "US" },
+    "expect": { "value": false, "reason": "DEFAULT" }
+  },
+  {
+    "name": "rest of world stays on old checkout",
+    "flag": "new_checkout_v2",
+    "context": { "environment": "production", "country": "FR", "user_id": "u1" },
+    "expect": { "value": false }
+  }
+]

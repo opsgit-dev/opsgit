@@ -1,0 +1,9 @@
+{
+  "$schema": "../schema/segment.schema.json",
+  "key": "beta_testers",
+  "description": "Internal staff and customers who opted into the beta programme",
+  "conditions": [
+    { "attribute": "beta_opt_in", "operator": "eq", "value": true },
+    { "attribute": "plan", "operator": "in", "value": ["pro", "enterprise"] }
+  ]
+}
