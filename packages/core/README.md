@@ -1,6 +1,6 @@
 # @opsgit/core
 
-The evaluation engine behind [opsgit flags](https://github.com/pysavantcodes/opsgit). Give it a flag definition and a context, get back a value and the reason for it. No network, no dependencies, works in Node, browsers, Workers, Bun and Deno.
+The evaluation engine behind [opsgit flags](https://github.com/opsgit-dev/opsgit). Give it a flag definition and a context, get back a value and the reason for it. No network, no dependencies, works in Node, browsers, Workers, Bun and Deno.
 
 You usually want `@opsgit/flags-sdk` instead, which fetches flags from your deployed worker and calls this under the hood. Reach for `@opsgit/core` directly when you already have the flag JSON in hand, for example in tests or a build step.
 

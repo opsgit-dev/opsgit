@@ -14,7 +14,7 @@ export async function init(args: string[], _root: string): Promise<void> {
     options: {
       dir: { type: "string", default: "." },
       "worker-name": { type: "string", default: "opsgit-flags" },
-      "action-ref": { type: "string", default: "pysavantcodes/opsgit/action@v0" },
+      "action-ref": { type: "string", default: "opsgit-dev/opsgit/action@v0" },
       force: { type: "boolean", default: false },
     },
   });

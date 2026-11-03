@@ -20,10 +20,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pysavantcodes/opsgit.git",
+    "url": "git+https://github.com/opsgit-dev/opsgit.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/pysavantcodes/opsgit#readme",
+  "homepage": "https://github.com/opsgit-dev/opsgit#readme",
   "keywords": [
     "feature-flags",
     "gitops"

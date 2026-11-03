@@ -17,10 +17,10 @@ npx opsgit-flags init
 That writes `flags/`, `segments/`, `tests/`, JSON schemas for editor autocomplete, an example flag, and one workflow file, `.github/workflows/flags.yml`:
 
 ```yaml
-- uses: pysavantcodes/opsgit/action@v0
+- uses: opsgit-dev/opsgit/action@v0
   with:
     command: preview        # on pull requests: validate, run fixtures, post the preview comment
-- uses: pysavantcodes/opsgit/action@v0
+- uses: opsgit-dev/opsgit/action@v0
   with:
     command: deploy         # on merge to main: build the bundle, deploy the Worker
     worker-name: my-flags
@@ -219,7 +219,7 @@ if (values.new_checkout_v2.value === true) { /* ... */ }
 - **Keys are Worker secrets**, compared by hash in constant time, never logged. Rotate by adding a new key to the list, deploying clients, then removing the old one.
 - **Nothing is stored.** The Worker keeps no database and writes no request context anywhere. With analytics on, it records the flag key, reason, rule name and key role per evaluation, and nothing about the user.
 - **Scope the Cloudflare token.** The "Edit Cloudflare Workers" template is the easy choice, but a custom token with only *Workers Scripts: Edit* and *Account Settings: Read* is enough to deploy and is what a leaked secret would be limited to.
-- **Pinned supply chain.** Workflows and the action reference `actions/checkout` and `actions/setup-node` by commit hash, and the engine installs from a lockfile. Customers can pin `pysavantcodes/opsgit/action` to a commit hash too instead of the moving `v0` tag.
+- **Pinned supply chain.** Workflows and the action reference `actions/checkout` and `actions/setup-node` by commit hash, and the engine installs from a lockfile. Customers can pin `opsgit-dev/opsgit/action` to a commit hash too instead of the moving `v0` tag.
 - **Who can change a flag** is whoever can merge to `main`. Use branch protection plus `.github/CODEOWNERS` to require review from flag owners.
 - **A private repo is strongly recommended.** Flag names and descriptions reveal unreleased work.
 

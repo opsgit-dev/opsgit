@@ -1,6 +1,6 @@
 # @opsgit/flags-sdk
 
-Client for [opsgit flags](https://github.com/pysavantcodes/opsgit), a feature flag setup where flags live as JSON files in a Git repo and get deployed to a Cloudflare Worker on your own account.
+Client for [opsgit flags](https://github.com/opsgit-dev/opsgit), a feature flag setup where flags live as JSON files in a Git repo and get deployed to a Cloudflare Worker on your own account.
 
 There are two clients. Pick by where the code runs.
 

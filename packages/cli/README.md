@@ -1,6 +1,6 @@
 # opsgit-flags
 
-Command line for [opsgit flags](https://github.com/pysavantcodes/opsgit): feature flags as JSON files in your repo, reviewed in pull requests, deployed to a Cloudflare Worker on your own account.
+Command line for [opsgit flags](https://github.com/opsgit-dev/opsgit): feature flags as JSON files in your repo, reviewed in pull requests, deployed to a Cloudflare Worker on your own account.
 
 No install needed:
 
@@ -120,7 +120,7 @@ A fixture in `tests/`:
 ]
 ```
 
-The full format, with segments and every operator, is in the [main README](https://github.com/pysavantcodes/opsgit#flag-files).
+The full format, with segments and every operator, is in the [main README](https://github.com/opsgit-dev/opsgit#flag-files).
 
 All commands take `--root <dir>` if you run them from outside the repo.
 
