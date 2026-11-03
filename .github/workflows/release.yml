@@ -27,11 +27,13 @@ jobs:
             v=$(node -p "require('./$p/package.json').version")
             [ "$v" = "$tag" ] || { echo "::error::$p is $v but tag is $tag"; exit 1; }
           done
-      - name: Publish
+      - name: Publish (skips versions already on the registry)
         run: |
-          npm publish -w @opsgit/core --provenance --access public
-          npm publish -w @opsgit/flags-sdk --provenance --access public
-          npm publish -w opsgit-flags --provenance --access public
+          for pkg in @opsgit/core @opsgit/flags-sdk opsgit-flags; do
+            v=$(npm view "$pkg@${GITHUB_REF_NAME#v}" version 2>/dev/null || true)
+            if [ -n "$v" ]; then echo "$pkg@$v already published, skipping"; continue; fi
+            npm publish -w "$pkg" --provenance --access public
+          done
       - name: Move the major tag for the GitHub Action
         env:
           GH_TOKEN: ${{ github.token }}
