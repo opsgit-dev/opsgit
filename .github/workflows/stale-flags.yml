@@ -27,7 +27,7 @@ jobs:
           title="Stale feature flags"
           existing=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number,title \
             --jq "[.[] | select(.title == \"$title\")] | first | .number // empty")
-          if [ ! -s stale.md ]; then
+          if ! grep -q "opsgit-stale-flags" stale.md; then
             if [ -n "$existing" ]; then
               gh issue close "$existing" --repo "$REPO" --comment "No expired or expiring flags remain. Closing."
               echo "closed issue $existing"
@@ -40,6 +40,7 @@ jobs:
             gh issue edit "$existing" --repo "$REPO" --body-file stale.md
             echo "updated issue $existing"
           else
+            gh label create flags --repo "$REPO" --color 0E8A16 --description "Feature flag housekeeping" --force
             gh issue create --repo "$REPO" --title "$title" --body-file stale.md --label "flags"
             echo "created issue"
           fi

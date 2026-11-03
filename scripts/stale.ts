@@ -17,8 +17,7 @@ for (const flag of Object.values(flags)) {
 }
 
 if (expired.length === 0 && soon.length === 0) {
-  console.log("");
-  process.exit(0);
+  process.exit(0); // print nothing at all; the workflow treats an empty file as "nothing stale"
 }
 
 const parts = ["<!-- opsgit-stale-flags -->", "## Stale feature flags", ""];
