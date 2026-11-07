@@ -1,0 +1,8 @@
+# Static marketing site, served as Worker assets from the account's own Cloudflare.
+# Deploy from this folder: npx wrangler deploy
+name = "opsgit-site"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "."
+not_found_handling = "404-page"

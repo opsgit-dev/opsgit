@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<p align="center"><strong>Feature flags that live in your Git repo and run on your own Cloudflare account.</strong></p>
+<p align="center"><strong>Turn features on with a pull request.</strong><br>Feature flags as JSON files in your repo, shipped to a Cloudflare Worker you own.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/opsgit-flags">npm</a> ·

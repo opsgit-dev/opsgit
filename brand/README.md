@@ -43,9 +43,9 @@ Signal is the only hue. Everything else is ink, paper, and greys between them. S
 
 ## Type
 
-The wordmark is **Inter Tight SemiBold**, lowercase, letter-spaced at −1.8%. It is already converted to outlines in the SVGs, so no font needs to be installed to use them.
+The wordmark is **Figtree SemiBold**, lowercase, letter-spaced at −2%. It is already converted to outlines in the SVGs, so no font needs to be installed to use them.
 
-For product UI and docs, use Inter Tight for headings and Inter for body. Code is whatever monospace the surface already uses.
+For the website, product UI, and docs, use Figtree for headings and Inter for body text. Both are on Google Fonts. Code is whatever monospace the surface already uses.
 
 ## Spacing and sizing
 
@@ -63,4 +63,6 @@ For product UI and docs, use Inter Tight for headings and Inter for body. Code i
 
 ## Regenerating
 
-The SVGs are generated from `fonts/` and a short Python script using fontTools. The wordmark path is Inter Tight at weight 600 with the font's own kerning applied. If the wordmark text or weight changes, regenerate rather than editing the path by hand.
+The SVGs are generated with a short Python script using fontTools. The wordmark path is Figtree at weight 600 with the font's own kerning applied. If the wordmark text or weight changes, regenerate rather than editing the path by hand.
+
+The website lives in [`site/`](../site/) and uses the same mark inline, with the wordmark set live in Figtree.
