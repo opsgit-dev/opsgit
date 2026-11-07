@@ -103,44 +103,68 @@ nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; backgro
 .doodle .s { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .doodle .f { fill: var(--signal); }
 .doodle .fs { fill: none; stroke: var(--signal); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.doodle .face { fill: var(--card); stroke: currentColor; stroke-width: 1.4; stroke-dasharray: 4 4; stroke-linejoin: round; }
+.doodle .bob { animation: bob 3.4s ease-in-out infinite; } @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.doodle .spin, .doodle .spin2 { transform-box: fill-box; transform-origin: center; } .doodle .spin { animation: orbit 14s linear infinite; } .doodle .spin2 { animation: orbit 9s linear infinite reverse; }
+@keyframes orbit { to { stroke-dashoffset: -80; } } .doodle .spin .d, .doodle .spin2 .d { stroke-dasharray: 4 4; }
+.doodle .pulse { animation: blink 2.8s ease-in-out infinite; }
 @media (min-width: 1100px) { .doodle { display: block; } }
-.doodle-l { left: calc(50% - 620px); top: 96px; width: 190px; }
-.doodle-r { right: calc(50% - 630px); top: 120px; width: 200px; }
+.doodle-l { left: calc(50% - 640px); top: 70px; width: 200px; }
+.doodle-r { right: calc(50% - 650px); top: 80px; width: 220px; }
 
-/* The edge as an isometric lattice: the flag plants on merge and the deploy ripples out to every node */
-.story { display: grid; gap: 40px; align-items: center; }
-@media (min-width: 900px) { .story { grid-template-columns: 1fr 1.25fr; gap: 56px; } .story .iso { order: 2; } }
-.iso { width: min(320px, 80vw); margin: 0 auto; }
+/* How it works: steps scroll on the left, the lattice sticks on the right and builds one step at a time */
+.scrolly { display: grid; gap: 24px; align-items: start; }
+@media (min-width: 900px) { .scrolly { grid-template-columns: 1fr 1fr; gap: 64px; } }
+.sticky { position: sticky; top: 68px; z-index: 1; background: var(--paper); padding-block: 12px; }
+@media (min-width: 900px) { .sticky { top: calc(50vh - 190px); background: none; padding: 0; margin-top: 110px; } }
+.steps { display: grid; }
+.step-item { padding-block: 28px; opacity: .32; transition: opacity .4s ease; }
+@media (min-width: 900px) { .step-item { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; padding-block: 0; } .step-item:first-child, .step-item:last-child { min-height: 48vh; } }
+.step-item.active { opacity: 1; }
+.step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; max-width: 420px; }
+.step-head .ic { width: 24px; height: 24px; color: var(--muted); display: inline-block; }
+.step-head .ic svg { width: 24px; height: 24px; }
+.step-head .step { font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--faint); }
+.step-item h3 { font-size: clamp(22px, 2.6vw, 28px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; max-width: 420px; }
+.step-item p { margin-top: 12px; color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 420px; }
+
+.iso { width: min(320px, 70vw); margin: 0 auto; }
+@media (max-width: 899px) { .iso { width: 200px; } }
 .iso svg { width: 100%; height: auto; overflow: visible; }
 .iso .lat { fill: none; stroke: var(--line-strong); stroke-width: 1.2; stroke-dasharray: 3.5 4; stroke-linecap: round; }
 .iso .lat-solid { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-linejoin: round; }
-.iso .node circle { fill: var(--paper); stroke: var(--faint); stroke-width: 1.4; }
-.iso .node circle:nth-child(2) { fill: var(--signal); stroke: var(--signal); animation: blink 2.8s ease-in-out infinite; }
-.iso .lat, .iso .lat-solid { opacity: 0; transition: opacity .8s ease .1s; }
+.iso .lat, .iso .lat-solid { opacity: 0; transition: opacity .8s ease; }
 .iso.in .lat, .iso.in .lat-solid { opacity: 1; }
 .iso .dot { fill: var(--paper); stroke: var(--line-strong); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
-.iso.in .dot { animation: light .5s ease var(--d) forwards, pulse 3.2s ease-in-out calc(var(--d) + 1.6s) infinite; }
+.iso.s3 .dot { animation: light .5s ease var(--d) forwards, pulse 3.2s ease-in-out calc(var(--d) + 1.6s) infinite; }
 .iso .wave { fill: none; stroke: var(--signal); stroke-width: 1.2; opacity: 0; vector-effect: non-scaling-stroke; }
-.iso.in .wave { animation: ripple 1.5s ease-out 1.05s forwards; }
-.iso.in .wave.w2 { animation-delay: 1.35s; }
-.iso .shadow { fill: #1d1e22; opacity: 0; transform-box: fill-box; transform-origin: center; }
-.iso.in .shadow { animation: land .8s ease .25s forwards; }
-.iso .flag { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+.iso.s2 .wave { animation: ripple 1.5s ease-out .5s forwards; }
+.iso.s2 .wave.w2 { animation-delay: .8s; }
+.iso .shadow { fill: #1d1e22; opacity: 0; transform-box: fill-box; transform-origin: center; transition: opacity .5s, transform .5s; transform: scale(.4); }
+.iso.in .shadow { opacity: .06; transform: scale(.7); }
+.iso.s2 .shadow { opacity: .12; transform: scale(1); }
+.iso .flag { opacity: 0; transform: translateY(-120px); transform-box: fill-box; transform-origin: 50% 100%; transition: opacity .5s ease, transform .5s ease; }
+.iso.in .flag { opacity: .55; transform: translateY(-92px); }
+.iso.s1 .flag { opacity: 1; transform: translateY(-92px); }
+.iso.s2 .flag { opacity: 1; transform: translateY(0); transition: opacity .3s, transform .8s cubic-bezier(.3,1.4,.5,1); }
 .iso .flag .pole { fill: none; stroke: var(--signal); stroke-width: 6; stroke-linecap: round; }
 .iso .flag .pennant { fill: var(--signal); transform-box: fill-box; transform-origin: 0% 50%; }
 .iso .flag .base { fill: var(--signal); }
-.iso.in .flag { animation: plant .8s cubic-bezier(.3,1.4,.5,1) .25s forwards; }
-.iso.in .flag .pennant { animation: wave 2.6s ease-in-out 1.2s infinite; }
-@keyframes plant { from { transform: translateY(-120px); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(0); opacity: 1; } }
-@keyframes land { from { opacity: 0; transform: scale(.3); } to { opacity: .12; transform: scale(1); } }
+.iso.s3 .flag .pennant { animation: wave 2.6s ease-in-out infinite; }
+.iso .pr { opacity: 0; transition: opacity .5s ease, transform .5s ease; transform: translateY(8px); transform-box: fill-box; }
+.iso.s1 .pr { opacity: 1; transform: translateY(0); }
+.iso.s2 .pr { opacity: .35; }
+.iso .prbox { fill: var(--card); stroke: var(--faint); stroke-width: 1.3; stroke-dasharray: 4 4; }
+.iso .prline { fill: none; stroke: var(--line-strong); stroke-width: 1.3; stroke-linecap: round; stroke-dasharray: 3 4; }
+.iso .prcheck { fill: var(--paper); stroke: var(--faint); stroke-width: 1.3; transition: fill .4s .3s, stroke .4s .3s; }
+.iso .prtick { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity .3s .5s; }
+.iso.s1 .prcheck { fill: var(--signal); stroke: var(--signal); }
+.iso.s1 .prtick { opacity: 1; }
 @keyframes light { to { fill: var(--signal); stroke: var(--signal); transform: scale(1.25); opacity: .85; } }
 @keyframes pulse { 0%, 100% { opacity: .85; } 50% { opacity: .35; } }
 @keyframes ripple { from { opacity: .6; transform: scale(1); } to { opacity: 0; transform: scale(130); } }
 @keyframes wave { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-3.5deg) scaleX(.965); } }
-@media (prefers-reduced-motion: reduce) { .iso .lat, .iso .lat-solid { opacity: 1; } .iso .dot { fill: var(--signal); stroke: var(--signal); } .iso .shadow { opacity: .12; } .iso .flag { opacity: 1; } .iso.in .flag, .iso.in .dot, .iso.in .flag .pennant, .iso.in .wave, .iso.in .shadow { animation: none; } .story .w { color: var(--ink); } .story .muted .w { color: var(--faint); } }
-@keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-22px); } }
-@keyframes shade { 0%, 100% { transform: scale(1); opacity: .14; } 50% { transform: scale(.72); opacity: .07; } }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .iso .lat, .iso .lat-solid, .iso .flag, .iso .pr { opacity: 1; transform: none; } .iso .dot { fill: var(--signal); stroke: var(--signal); } .iso .shadow { opacity: .12; transform: none; } .iso .prcheck { fill: var(--signal); stroke: var(--signal); } .iso .prtick { opacity: 1; } .iso.s3 .dot, .iso.s3 .flag .pennant, .iso.s2 .wave { animation: none; } .step-item { opacity: 1; } .reveal .w { color: var(--ink); } .reveal .muted .w { color: var(--faint); } }
 
 /* Stats */
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -158,9 +182,9 @@ ul { list-style: none; margin: 0; padding: 0; }
 .prose { font-family: var(--display); font-weight: 500; font-size: clamp(18px, 2.4vw, 24px); color: var(--ink); line-height: 1.3; letter-spacing: -0.015em; }
 .prose + .prose { margin-top: 20px; }
 .prose.muted { color: var(--faint); }
-.story .w { color: var(--faint); transition: color .25s; }
-.story .w.on { color: var(--ink); }
-.story .muted .w.on { color: var(--faint); }
+.reveal .w { color: var(--faint); transition: color .25s; }
+.reveal .w.on { color: var(--ink); }
+.reveal .muted .w.on { color: var(--faint); }
 
 /* Cards */
 .cards { display: grid; gap: 10px; }
@@ -221,6 +245,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .checks { display: grid; gap: 12px; }
 .checks li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; color: var(--text); }
 .checks svg { flex: none; width: 18px; height: 18px; color: var(--signal); margin-top: 3px; }
+.checks li > span { min-width: 0; }
 
 /* Footer */
 footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var(--muted); font-size: 14px; }
@@ -253,30 +278,13 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
 
 <section class="hero center">
   <div class="doodle doodle-l" aria-hidden="true">
-    <!-- a branch leaving main and shipping a flag -->
-    <svg viewBox="0 0 190 220">
-      <path class="d" d="M40 200V40"/>
-      <circle class="s" cx="40" cy="200" r="7"/>
-      <circle class="s" cx="40" cy="140" r="7"/>
-      <circle class="s" cx="40" cy="80" r="7"/>
-      <path class="d" d="M40 140c0-40 30-56 70-56h30"/>
-      <circle class="s" cx="110" cy="84" r="7"/>
-      <path class="fs" d="M140 84V38"/>
-      <path class="f" d="M140 38h40l-11 13 11 13h-40z"/>
+    <svg viewBox="0 0 200 220">
+      <path class="face" d="M95.0 150.0L171.2 194.0L114.1 227.0L37.8 183.0Z"/><path class="d" d="M37.8 183.0l0 10L114.1 237.0L114.1 227.0 M114.1 237.0L171.2 204.0L171.2 194.0"/><path class="d" d="M95.0 167.6L129.3 187.4"/><path class="face" d="M95.0 128.0L171.2 172.0L114.1 205.0L37.8 161.0Z"/><path class="d" d="M37.8 161.0l0 10L114.1 215.0L114.1 205.0 M114.1 215.0L171.2 182.0L171.2 172.0"/><path class="d" d="M95.0 145.6L129.3 165.4"/><path class="face" d="M95.0 106.0L171.2 150.0L114.1 183.0L37.8 139.0Z"/><path class="d" d="M37.8 139.0l0 10L114.1 193.0L114.1 183.0 M114.1 193.0L171.2 160.0L171.2 150.0"/><path class="d" d="M95.0 123.6L129.3 143.4"/><path class="d" d="M104.5 144.5V54c0-12 8-18 18-18h10"/><circle class="s" cx="104.5" cy="144.5" r="4"/><g class="bob"><path class="fs" d="M123 34V62"/><path class="f" d="M123 18h40l-11 12 11 12h-40z"/></g>
     </svg>
   </div>
   <div class="doodle doodle-r" aria-hidden="true">
-    <!-- a pull request card with a check, and a dashed edge network -->
     <svg viewBox="0 0 200 220">
-      <rect class="d" x="24" y="28" width="150" height="96" rx="14"/>
-      <path class="d" d="M46 56h60M46 76h90M46 96h40"/>
-      <circle class="f" cx="150" cy="56" r="9"/>
-      <path d="M145.5 56.5l3 3 6-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle class="d" cx="100" cy="186" r="26"/>
-      <ellipse class="d" cx="100" cy="186" rx="11" ry="26"/>
-      <path class="d" d="M74 186h52"/>
-      <path class="d" d="M100 124v36"/>
-      <circle class="s" cx="100" cy="160" r="4"/>
+      <path class="face" d="M100.0 92.0L158.5 125.8L100.0 159.6L41.5 125.8Z"/><path class="d" d="M41.5 125.8l0 52L100.0 211.6L100.0 159.6 M100.0 211.6L158.5 177.8L158.5 125.8"/><path class="d" d="M129.3 108.9L70.7 142.7 M70.7 108.9L129.3 142.7"/><g class="spin"><ellipse class="d" cx="100.0" cy="141.8" rx="86" ry="34"/></g><circle class="s" cx="183.1" cy="150.6" r="3.5"/><circle class="s" cx="25.5" cy="158.8" r="3.5"/><circle class="s" cx="77.7" cy="109.0" r="3.5"/><path class="d" d="M100.0 125.8V85.8"/><circle class="f pulse" cx="100.0" cy="125.8" r="6"/><circle class="s" cx="100.0" cy="81.8" r="4"/>
     </svg>
   </div>
 
@@ -310,18 +318,7 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
 </section>
 
 <section>
-  <div class="wrap story">
-    <div class="iso" aria-hidden="true">
-      <svg viewBox="0 0 320 320">
-        <path class="lat" d="M160.0 72.0L35.3 144.0M160.0 72.0L284.7 144.0M191.2 90.0L66.5 162.0M128.8 90.0L253.5 162.0M222.4 108.0L97.6 180.0M97.6 108.0L222.4 180.0M253.5 126.0L128.8 198.0M66.5 126.0L191.2 198.0M284.7 144.0L160.0 216.0M35.3 144.0L160.0 216.0M35.3 144.0l0 66M284.7 144.0l0 66M66.5 162.0l0 66M253.5 162.0l0 66M97.6 180.0l0 66M222.4 180.0l0 66M128.8 198.0l0 66M191.2 198.0l0 66M160.0 216.0l0 66M160.0 216.0l0 66M35.3 160.5L160.0 232.5M160.0 232.5L284.7 160.5M35.3 177.0L160.0 249.0M160.0 249.0L284.7 177.0M35.3 193.5L160.0 265.5M160.0 265.5L284.7 193.5M35.3 210.0L160.0 282.0M160.0 282.0L284.7 210.0"/>
-        <path class="lat-solid" d="M160.0 72.0L284.7 144.0L160.0 216.0L35.3 144.0Z M35.3 144.0l0 66L160.0 282.0L160.0 216.0 M160.0 282.0L284.7 210.0L284.7 144.0"/>
-        <g class="dots"><circle class="dot" r="2.2" cx="160.0" cy="72.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="128.8" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="97.6" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="35.3" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="191.2" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="128.8" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="253.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="160.0" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="284.7" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="253.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="216.0" style="--d:1.79s"/></g>
-        <g class="ring" transform="translate(160.0 144.0)"><ellipse class="wave" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/><ellipse class="wave w2" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/></g>
-        <ellipse class="shadow" cx="160.0" cy="144.0" rx="22" ry="8"/>
-        <g transform="translate(141.1 71.1) scale(1.35)"><g class="flag"><path class="pole" d="M14 54V24c0-8 6-12 14-12"/><path class="pennant" d="M28 12h24l-9 11 9 11H28c-8 0-14 4-14 12V24c0-8 6-12 14-12z"/><circle class="base" cx="14" cy="54" r="4.5"/></g></g>
-      </svg>
-    </div>
-    <div class="narrow reveal" style="margin:0">
+  <div class="narrow reveal">
     <p class="prose">Your flags are in a vendor dashboard. Someone changes a rule at 4pm on a Friday. Nobody reviewed it, nothing in git shows it, and the bill went up again when you added two engineers.</p>
     <ul class="problems">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Rules you can't diff, review, or roll back with git.</li>
@@ -331,40 +328,55 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
     </ul>
     <p class="prose" style="margin-top:36px">opsgit turns the flag into a file and the change into a pull request. Review, CI, history, and ownership come from GitHub. Delivery comes from a Worker in your own Cloudflare account.</p>
     <p class="prose muted">You keep the flags. We keep nothing.</p>
-    </div>
   </div>
 </section>
 
 <section id="how">
   <div class="wrap">
-    <div class="center stack" style="margin-bottom:40px">
+    <div class="center stack" style="margin-bottom:24px">
       <p class="eyebrow">How it works</p>
       <h2 class="h2">Four steps, all of them in git</h2>
     </div>
-    <div class="cards c4">
-      <div class="card">
-        <span class="step">01</span>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg></div>
-        <h3 class="h3">Write a flag</h3>
+    <div class="scrolly">
+      <div class="steps">
+      <div class="step-item" data-step="0">
+        <div class="step-head"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg></span><span class="step">01</span></div>
+        <h3>Write a flag</h3>
         <p>One JSON file per flag in <code>flags/</code>. Rules, rollouts, segments, expiry, and an owner. Your editor autocompletes it from the schema.</p>
       </div>
-      <div class="card">
-        <span class="step">02</span>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" x2="6" y1="9" y2="21"/></svg></div>
-        <h3 class="h3">Open a pull request</h3>
+      <div class="step-item" data-step="1">
+        <div class="step-head"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" x2="6" y1="9" y2="21"/></svg></span><span class="step">02</span></div>
+        <h3>Open a pull request</h3>
         <p>The action validates every file, runs your fixtures, and posts a plain-English preview: what changed, for whom, and by how much.</p>
       </div>
-      <div class="card">
-        <span class="step">03</span>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></div>
-        <h3 class="h3">Merge</h3>
+      <div class="step-item" data-step="2">
+        <div class="step-head"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></span><span class="step">03</span></div>
+        <h3>Merge</h3>
         <p>The flags are compiled into a Worker and deployed to your Cloudflare account. Global in seconds. No database to warm up.</p>
       </div>
-      <div class="card">
-        <span class="step">04</span>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></div>
-        <h3 class="h3">Evaluate</h3>
+      <div class="step-item" data-step="3">
+        <div class="step-head"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></span><span class="step">04</span></div>
+        <h3>Evaluate</h3>
         <p>Servers download the bundle once and evaluate in-process. Browsers and apps call the Worker with a client key that never sees a rule.</p>
+      </div>
+      </div>
+      <div class="sticky">
+        <div class="iso" aria-hidden="true">
+      <svg viewBox="0 0 320 320">
+        <path class="lat" d="M160.0 72.0L35.3 144.0M160.0 72.0L284.7 144.0M191.2 90.0L66.5 162.0M128.8 90.0L253.5 162.0M222.4 108.0L97.6 180.0M97.6 108.0L222.4 180.0M253.5 126.0L128.8 198.0M66.5 126.0L191.2 198.0M284.7 144.0L160.0 216.0M35.3 144.0L160.0 216.0M35.3 144.0l0 66M284.7 144.0l0 66M66.5 162.0l0 66M253.5 162.0l0 66M97.6 180.0l0 66M222.4 180.0l0 66M128.8 198.0l0 66M191.2 198.0l0 66M160.0 216.0l0 66M160.0 216.0l0 66M35.3 160.5L160.0 232.5M160.0 232.5L284.7 160.5M35.3 177.0L160.0 249.0M160.0 249.0L284.7 177.0M35.3 193.5L160.0 265.5M160.0 265.5L284.7 193.5M35.3 210.0L160.0 282.0M160.0 282.0L284.7 210.0"/>
+        <path class="lat-solid" d="M160.0 72.0L284.7 144.0L160.0 216.0L35.3 144.0Z M35.3 144.0l0 66L160.0 282.0L160.0 216.0 M160.0 282.0L284.7 210.0L284.7 144.0"/>
+        <g class="pr" transform="translate(214 18)">
+          <rect class="prbox" width="92" height="56" rx="10"/>
+          <path class="prline" d="M14 18h30M14 30h50M14 42h22"/>
+          <circle class="prcheck" cx="76" cy="18" r="7"/>
+          <path class="prtick" d="M72.5 18.5l2.5 2.5 4.5-4.5"/>
+        </g>
+        <g class="dots"><circle class="dot" r="2.2" cx="160.0" cy="72.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="128.8" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="97.6" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="35.3" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="191.2" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="128.8" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="253.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="160.0" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="284.7" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="253.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="216.0" style="--d:1.79s"/></g>
+        <g class="ring" transform="translate(160.0 144.0)"><ellipse class="wave" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/><ellipse class="wave w2" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/></g>
+        <ellipse class="shadow" cx="160.0" cy="144.0" rx="22" ry="8"/>
+        <g transform="translate(141.1 71.1) scale(1.35)"><g class="flag"><path class="pole" d="M14 54V24c0-8 6-12 14-12"/><path class="pennant" d="M28 12h24l-9 11 9 11H28c-8 0-14 4-14 12V24c0-8 6-12 14-12z"/><circle class="base" cx="14" cy="54" r="4.5"/></g></g>
+      </svg>
+    </div>
       </div>
     </div>
   </div>
@@ -541,11 +553,11 @@ flags.evaluation(<span class="s">"new_checkout_v2"</span>, ctx);
       <h3>Your targeting rules are yours</h3>
       <p class="lead">Most flag services hand the full rule set to every browser that asks. opsgit splits keys by role so that the public side of your app can only ask one question: what is the value for this user.</p>
       <ul class="checks" style="margin-top:28px">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Flags are server-only unless you opt them in with <code>client: true</code>.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Keys are stored hashed and compared in constant time.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Client traffic is rate limited per key and IP at the data centre.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Request bodies are capped and contexts are scalar-only.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>The GitHub Action is pinned to commit hashes, and so are its own dependencies.</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Flags are server-only unless you opt them in with <code>client: true</code>.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Keys are stored hashed and compared in constant time.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Client traffic is rate limited per key and IP at the data centre.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Request bodies are capped and contexts are scalar-only.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>The GitHub Action is pinned to commit hashes, and so are its own dependencies.</span></li>
       </ul>
     </div>
   </div>
@@ -566,10 +578,10 @@ flags.evaluation(<span class="s">"new_checkout_v2"</span>, ctx);
         </div>
       </div>
       <ul class="checks">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Unlimited flags, environments, and seats. There is no seat.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Unlimited evaluations. Server SDKs evaluate locally and never call home.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Your data never leaves your GitHub org and your Cloudflare account.</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>No lock-in. The flags are JSON files you already have.</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Unlimited flags, environments, and seats. There is no seat.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Unlimited evaluations. Server SDKs evaluate locally and never call home.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Your data never leaves your GitHub org and your Cloudflare account.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>No lock-in. The flags are JSON files you already have.</span></li>
       </ul>
     </div>
   </div>
@@ -597,13 +609,27 @@ flags.evaluation(<span class="s">"new_checkout_v2"</span>, ctx);
   (function () {
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Lattice: play the intro once it is 15% in view, then keep looping.
+    // Lattice: fade in when 15% in view, then advance one stage per step as the steps scroll past the middle of the screen.
     var iso = document.querySelector('.iso');
+    var steps = Array.prototype.slice.call(document.querySelectorAll('.step-item'));
     if (iso) {
       if (reduce || !('IntersectionObserver' in window)) iso.classList.add('in');
       else new IntersectionObserver(function (es, io) {
         es.forEach(function (e) { if (e.isIntersecting) { iso.classList.add('in'); io.disconnect(); } });
       }, { threshold: 0.15 }).observe(iso);
+      var stage = -1;
+      function setStage(n) {
+        if (n === stage) return; stage = n;
+        iso.classList.toggle('s1', n >= 1); iso.classList.toggle('s2', n >= 2); iso.classList.toggle('s3', n >= 3);
+        steps.forEach(function (el, i) { el.classList.toggle('active', i === n); });
+      }
+      function stepTick() {
+        var line = window.innerHeight * 0.55, n = 0;
+        for (var i = 0; i < steps.length; i++) { if (steps[i].getBoundingClientRect().top < line) n = i; }
+        setStage(n);
+      }
+      if (reduce) { setStage(3); steps.forEach(function (el) { el.classList.add('active'); }); }
+      else { window.addEventListener('scroll', stepTick, { passive: true }); window.addEventListener('resize', stepTick); stepTick(); }
     }
 
     // Story: split into words, light them up as the block passes the 40% line.
