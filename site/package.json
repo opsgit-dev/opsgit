@@ -1,0 +1,23 @@
+{
+  "name": "opsgit-site",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Marketing site for opsgit, built with Next.js and deployed to Netlify as a static export.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "next": "^16",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
