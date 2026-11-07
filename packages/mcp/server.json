@@ -1,0 +1,42 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.opsgit-dev/opsgit",
+  "title": "opsgit",
+  "description": "Feature flags that live in your Git repo. List, create, update, validate and explain flags, run fixtures, and preview the pull request. Merging deploys them to a Cloudflare Worker you own.",
+  "version": "0.1.2",
+  "websiteUrl": "https://github.com/opsgit-dev/opsgit",
+  "repository": {
+    "url": "https://github.com/opsgit-dev/opsgit",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/opsgit-dev/opsgit/main/.github/brand/icon-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@opsgit/mcp",
+      "version": "0.1.2",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OPSGIT_ROOT",
+          "description": "Path to the flags repository. Defaults to the nearest folder containing flags/.",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

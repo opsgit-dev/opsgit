@@ -49,6 +49,19 @@ The server never touches git. Committing, branching and opening the pull request
 
 The agent calls `create_flag`, then `update_flag` with the rule, then `explain_flag` with `{"user_id":"u1"}`, then `validate_flags` and `check_fixtures`, then `preview_diff` to write the PR description, and finally its own git tools to branch, commit and push.
 
+## Listing in the MCP Registry
+
+`server.json` is the manifest for the [official MCP Registry](https://registry.modelcontextprotocol.io), which is where VS Code, Cursor and others fetch the logo, description and README shown on their install pages. After `@opsgit/mcp` is on npm:
+
+```sh
+brew install mcp-publisher          # or download a release from github.com/modelcontextprotocol/registry
+cd packages/mcp
+mcp-publisher login github          # the io.github.opsgit-dev namespace needs a GitHub login with access to the org
+mcp-publisher publish
+```
+
+The registry checks that the npm package's `package.json` carries `"mcpName": "io.github.opsgit-dev/opsgit"`, which it does.
+
 ## Programmatic use
 
 The tool functions are exported without the transport, if you want them in a script:

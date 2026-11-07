@@ -26,6 +26,14 @@ for (const p of packages) {
   }
   await writeFile(file, JSON.stringify(pkg, null, 2) + "\n");
   console.log(`${pkg.name} -> ${version}`);
+  // MCP registry manifest, if the package has one
+  try {
+    const sf = path.join(root, p, "server.json");
+    const srv = JSON.parse(await readFile(sf, "utf8"));
+    srv.version = version;
+    for (const pk of srv.packages ?? []) pk.version = version;
+    await writeFile(sf, JSON.stringify(srv, null, 2) + "\n");
+  } catch {}
 }
 
 const git = (...a: string[]) => execFileSync("git", a, { cwd: root, stdio: "inherit" });

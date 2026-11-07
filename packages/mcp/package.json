@@ -2,6 +2,7 @@
   "name": "@opsgit/mcp",
   "version": "0.1.2",
   "description": "MCP server for opsgit flags: lets Claude Code, Codex, Cursor and other agents list, create, explain and validate feature flags in your repo.",
+  "mcpName": "io.github.opsgit-dev/opsgit",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -15,7 +16,8 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "server.json"
   ],
   "repository": {
     "type": "git",
