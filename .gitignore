@@ -7,6 +7,3 @@ worker/src/flags.generated.json
 .DS_Store
 *.local
 worker/wrangler.deploy.toml
-site/.next/
-site/out/
-site/next-env.d.ts

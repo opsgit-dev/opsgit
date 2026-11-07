@@ -65,4 +65,4 @@ For the website, product UI, and docs, use Figtree for headings and Inter for bo
 
 The SVGs are generated with a short Python script using fontTools. The wordmark path is Figtree at weight 600 with the font's own kerning applied. If the wordmark text or weight changes, regenerate rather than editing the path by hand.
 
-The website lives in [`site/`](../site/) and uses the same mark inline, with the wordmark set live in Figtree.
+The website lives in a separate private repository and uses the same mark inline, with the wordmark set live in Figtree.
