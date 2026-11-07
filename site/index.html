@@ -105,6 +105,21 @@ nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; backgro
 .doodle-l { left: calc(50% - 620px); top: 96px; width: 190px; }
 .doodle-r { right: calc(50% - 630px); top: 120px; width: 200px; }
 
+/* Isometric lattice with a hovering sphere: the edge, and the one thing you ship onto it */
+.story { display: grid; gap: 40px; align-items: center; }
+@media (min-width: 900px) { .story { grid-template-columns: 1fr 1.25fr; gap: 56px; } .story .iso { order: 2; } }
+.iso { width: min(320px, 80vw); margin: 0 auto; }
+.iso svg { width: 100%; height: auto; overflow: visible; }
+.iso .lat { fill: none; stroke: var(--line-strong); stroke-width: 1.2; stroke-dasharray: 3.5 4; stroke-linecap: round; }
+.iso .lat-solid { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-linejoin: round; }
+.iso .node circle { fill: var(--paper); stroke: var(--faint); stroke-width: 1.4; }
+.iso .node circle:nth-child(2) { fill: var(--signal); stroke: var(--signal); animation: blink 2.8s ease-in-out infinite; }
+.iso .shadow { fill: #1d1e22; opacity: .12; transform-origin: center; animation: shade 3.2s ease-in-out infinite; }
+.iso .sphere { animation: hover 3.2s ease-in-out infinite; }
+@keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-22px); } }
+@keyframes shade { 0%, 100% { transform: scale(1); opacity: .14; } 50% { transform: scale(.72); opacity: .07; } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
 /* Stats */
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 @media (min-width: 760px) { .stats { grid-template-columns: repeat(4, 1fr); } }
@@ -181,6 +196,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var(--muted); font-size: 14px; }
 .foot { display: flex; flex-wrap: wrap; gap: 20px 40px; justify-content: space-between; align-items: center; }
 .foot .links { display: flex; gap: 24px; flex-wrap: wrap; }
+.foot .gh { display: inline-flex; align-items: center; gap: 6px; } .foot .gh svg { width: 16px; height: 16px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
@@ -199,9 +215,7 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
       <a href="#security">Security</a>
       <a href="#pricing">Pricing</a>
     </div>
-    <a class="btn btn-dark btn-sm" href="https://github.com/opsgit-dev/opsgit">GitHub
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-    </a>
+    <a class="btn btn-dark btn-sm" href="https://github.com/opsgit-dev/opsgit"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
   </div>
 </nav>
 
@@ -266,7 +280,24 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
 </section>
 
 <section>
-  <div class="narrow">
+  <div class="wrap story">
+    <div class="iso" aria-hidden="true">
+      <svg viewBox="0 0 320 320">
+        <defs>
+          <radialGradient id="ball" cx="35%" cy="30%" r="75%">
+            <stop offset="0" stop-color="#ffb08f"/><stop offset=".45" stop-color="#ff5a2b"/><stop offset="1" stop-color="#b8300a"/>
+          </radialGradient>
+        </defs>
+        <path class="lat" d="M160.0 64.0L35.3 136.0M160.0 64.0L284.7 136.0M191.2 82.0L66.5 154.0M128.8 82.0L253.5 154.0M222.4 100.0L97.6 172.0M97.6 100.0L222.4 172.0M253.5 118.0L128.8 190.0M66.5 118.0L191.2 190.0M284.7 136.0L160.0 208.0M35.3 136.0L160.0 208.0M35.3 136.0l0 66M284.7 136.0l0 66M66.5 154.0l0 66M253.5 154.0l0 66M97.6 172.0l0 66M222.4 172.0l0 66M128.8 190.0l0 66M191.2 190.0l0 66M160.0 208.0l0 66M160.0 208.0l0 66M35.3 152.5L160.0 224.5M160.0 224.5L284.7 152.5M35.3 169.0L160.0 241.0M160.0 241.0L284.7 169.0M35.3 185.5L160.0 257.5M160.0 257.5L284.7 185.5M35.3 202.0L160.0 274.0M160.0 274.0L284.7 202.0"/>
+        <path class="lat-solid" d="M160.0 64.0L284.7 136.0L160.0 208.0L35.3 136.0Z M35.3 136.0l0 66L160.0 274.0L160.0 208.0 M160.0 274.0L284.7 202.0L284.7 136.0"/>
+        <g class="node"><circle cx="160.0" cy="100.0" r="4"/><circle cx="222.4" cy="136.0" r="4"/><circle cx="97.6" cy="136.0" r="4"/></g>
+        <g transform="translate(160.0 136.0)">
+          <ellipse class="shadow" rx="30" ry="11"/>
+          <circle class="sphere" cy="-30" r="28" fill="url(#ball)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="narrow" style="margin:0">
     <p class="prose">Your flags are in a vendor dashboard. Someone changes a rule at 4pm on a Friday. Nobody reviewed it, nothing in git shows it, and the bill went up again when you added two engineers.</p>
     <ul class="problems">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Rules you can't diff, review, or roll back with git.</li>
@@ -276,6 +307,7 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
     </ul>
     <p class="prose" style="margin-top:36px">opsgit turns the flag into a file and the change into a pull request. Review, CI, history, and ownership come from GitHub. Delivery comes from a Worker in your own Cloudflare account.</p>
     <p class="prose muted">You keep the flags. We keep nothing.</p>
+    </div>
   </div>
 </section>
 
@@ -506,9 +538,7 @@ flags.evaluation(<span class="s">"new_checkout_v2"</span>, ctx);
         <p class="big">$0<small>from us</small></p>
         <p class="lead" style="margin-top:16px">The engine is source-available under the Functional Source License and becomes Apache 2.0 two years after each release. The SDK, core, and CLI are MIT. The Worker runs in your Cloudflare account on the free tier or the $5 a month paid tier.</p>
         <div class="cta" style="justify-content:flex-start;margin-top:24px">
-          <a class="btn btn-dark" href="https://github.com/opsgit-dev/opsgit">Get started on GitHub
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
+          <a class="btn btn-dark" href="https://github.com/opsgit-dev/opsgit"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Get started on GitHub</a>
         </div>
       </div>
       <ul class="checks">
@@ -530,7 +560,7 @@ flags.evaluation(<span class="s">"new_checkout_v2"</span>, ctx);
       opsgit
     </a>
     <div class="links">
-      <a href="https://github.com/opsgit-dev/opsgit">GitHub</a>
+      <a class="gh" href="https://github.com/opsgit-dev/opsgit"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
       <a href="https://www.npmjs.com/package/opsgit-flags">npm</a>
       <a href="https://github.com/opsgit-dev/opsgit/blob/main/LICENSE.md">License</a>
       <a href="https://github.com/opsgit-dev/opsgit/tree/main/brand">Brand</a>
