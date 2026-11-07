@@ -1,8 +1,20 @@
-# opsgit
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/brand/lockup-dark.svg">
+    <img alt="opsgit" src=".github/brand/lockup-light.svg" width="300">
+  </picture>
+</p>
 
-**Turn features on with a pull request.** Feature flags as JSON files in your repo, shipped to a Cloudflare Worker you own.
+<p align="center"><strong>Turn features on with a pull request.</strong><br>Feature flags as JSON files in your repo, shipped to a Cloudflare Worker you own.</p>
 
-[npm](https://www.npmjs.com/package/opsgit-flags) · [Quickstart](#set-up-a-flags-repository-in-two-minutes) · [How it works](#how-it-works) · [Security](#security-model)
+<p align="center">
+  <a href="https://www.npmjs.com/package/opsgit-flags">npm</a> ·
+  <a href="#set-up-a-flags-repository-in-two-minutes">Quickstart</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#security-model">Security</a>
+</p>
+
+---
 
 ---
 
