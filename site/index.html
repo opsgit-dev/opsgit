@@ -107,7 +107,7 @@ nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; backgro
 .doodle-l { left: calc(50% - 620px); top: 96px; width: 190px; }
 .doodle-r { right: calc(50% - 630px); top: 120px; width: 200px; }
 
-/* Isometric lattice with a hovering sphere: the edge, and the one thing you ship onto it */
+/* The edge as an isometric lattice: the flag plants on merge and the deploy ripples out to every node */
 .story { display: grid; gap: 40px; align-items: center; }
 @media (min-width: 900px) { .story { grid-template-columns: 1fr 1.25fr; gap: 56px; } .story .iso { order: 2; } }
 .iso { width: min(320px, 80vw); margin: 0 auto; }
@@ -116,15 +116,28 @@ nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; backgro
 .iso .lat-solid { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-linejoin: round; }
 .iso .node circle { fill: var(--paper); stroke: var(--faint); stroke-width: 1.4; }
 .iso .node circle:nth-child(2) { fill: var(--signal); stroke: var(--signal); animation: blink 2.8s ease-in-out infinite; }
-.iso .lat, .iso .lat-solid, .iso .node { opacity: 0; transition: opacity .8s ease .1s; }
-.iso.in .lat, .iso.in .lat-solid, .iso.in .node { opacity: 1; }
-.iso .shadow { fill: #1d1e22; opacity: 0; transform-origin: center; }
-.iso .sphere { transform: translateY(-140px); opacity: 0; }
-.iso.in .sphere { animation: drop .9s cubic-bezier(.3,1.4,.5,1) .3s forwards, hover 3.2s ease-in-out 1.2s infinite; }
-.iso.in .shadow { animation: land .9s ease .3s forwards, shade 3.2s ease-in-out 1.2s infinite; }
-@keyframes drop { from { transform: translateY(-140px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(0); opacity: 1; } }
-@keyframes land { from { opacity: 0; transform: scale(.4); } to { opacity: .14; transform: scale(1); } }
-@media (prefers-reduced-motion: reduce) { .iso .lat, .iso .lat-solid, .iso .node, .iso .shadow { opacity: 1; } .iso .shadow { opacity: .14; } .iso .sphere { transform: none; opacity: 1; } .story .w { color: var(--ink); } .story .muted .w { color: var(--faint); } }
+.iso .lat, .iso .lat-solid { opacity: 0; transition: opacity .8s ease .1s; }
+.iso.in .lat, .iso.in .lat-solid { opacity: 1; }
+.iso .dot { fill: var(--paper); stroke: var(--line-strong); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
+.iso.in .dot { animation: light .5s ease var(--d) forwards, pulse 3.2s ease-in-out calc(var(--d) + 1.6s) infinite; }
+.iso .wave { fill: none; stroke: var(--signal); stroke-width: 1.2; opacity: 0; vector-effect: non-scaling-stroke; }
+.iso.in .wave { animation: ripple 1.5s ease-out 1.05s forwards; }
+.iso.in .wave.w2 { animation-delay: 1.35s; }
+.iso .shadow { fill: #1d1e22; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.iso.in .shadow { animation: land .8s ease .25s forwards; }
+.iso .flag { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+.iso .flag .pole { fill: none; stroke: var(--signal); stroke-width: 6; stroke-linecap: round; }
+.iso .flag .pennant { fill: var(--signal); transform-box: fill-box; transform-origin: 0% 50%; }
+.iso .flag .base { fill: var(--signal); }
+.iso.in .flag { animation: plant .8s cubic-bezier(.3,1.4,.5,1) .25s forwards; }
+.iso.in .flag .pennant { animation: wave 2.6s ease-in-out 1.2s infinite; }
+@keyframes plant { from { transform: translateY(-120px); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(0); opacity: 1; } }
+@keyframes land { from { opacity: 0; transform: scale(.3); } to { opacity: .12; transform: scale(1); } }
+@keyframes light { to { fill: var(--signal); stroke: var(--signal); transform: scale(1.25); opacity: .85; } }
+@keyframes pulse { 0%, 100% { opacity: .85; } 50% { opacity: .35; } }
+@keyframes ripple { from { opacity: .6; transform: scale(1); } to { opacity: 0; transform: scale(130); } }
+@keyframes wave { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-3.5deg) scaleX(.965); } }
+@media (prefers-reduced-motion: reduce) { .iso .lat, .iso .lat-solid { opacity: 1; } .iso .dot { fill: var(--signal); stroke: var(--signal); } .iso .shadow { opacity: .12; } .iso .flag { opacity: 1; } .iso.in .flag, .iso.in .dot, .iso.in .flag .pennant, .iso.in .wave, .iso.in .shadow { animation: none; } .story .w { color: var(--ink); } .story .muted .w { color: var(--faint); } }
 @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-22px); } }
 @keyframes shade { 0%, 100% { transform: scale(1); opacity: .14; } 50% { transform: scale(.72); opacity: .07; } }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
@@ -300,18 +313,12 @@ footer { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var
   <div class="wrap story">
     <div class="iso" aria-hidden="true">
       <svg viewBox="0 0 320 320">
-        <defs>
-          <radialGradient id="ball" cx="35%" cy="30%" r="75%">
-            <stop offset="0" stop-color="#ffb08f"/><stop offset=".45" stop-color="#ff5a2b"/><stop offset="1" stop-color="#b8300a"/>
-          </radialGradient>
-        </defs>
-        <path class="lat" d="M160.0 64.0L35.3 136.0M160.0 64.0L284.7 136.0M191.2 82.0L66.5 154.0M128.8 82.0L253.5 154.0M222.4 100.0L97.6 172.0M97.6 100.0L222.4 172.0M253.5 118.0L128.8 190.0M66.5 118.0L191.2 190.0M284.7 136.0L160.0 208.0M35.3 136.0L160.0 208.0M35.3 136.0l0 66M284.7 136.0l0 66M66.5 154.0l0 66M253.5 154.0l0 66M97.6 172.0l0 66M222.4 172.0l0 66M128.8 190.0l0 66M191.2 190.0l0 66M160.0 208.0l0 66M160.0 208.0l0 66M35.3 152.5L160.0 224.5M160.0 224.5L284.7 152.5M35.3 169.0L160.0 241.0M160.0 241.0L284.7 169.0M35.3 185.5L160.0 257.5M160.0 257.5L284.7 185.5M35.3 202.0L160.0 274.0M160.0 274.0L284.7 202.0"/>
-        <path class="lat-solid" d="M160.0 64.0L284.7 136.0L160.0 208.0L35.3 136.0Z M35.3 136.0l0 66L160.0 274.0L160.0 208.0 M160.0 274.0L284.7 202.0L284.7 136.0"/>
-        <g class="node"><circle cx="160.0" cy="100.0" r="4"/><circle cx="222.4" cy="136.0" r="4"/><circle cx="97.6" cy="136.0" r="4"/></g>
-        <g transform="translate(160.0 136.0)">
-          <ellipse class="shadow" rx="30" ry="11"/>
-          <circle class="sphere" cy="-30" r="28" fill="url(#ball)"/>
-        </g>
+        <path class="lat" d="M160.0 72.0L35.3 144.0M160.0 72.0L284.7 144.0M191.2 90.0L66.5 162.0M128.8 90.0L253.5 162.0M222.4 108.0L97.6 180.0M97.6 108.0L222.4 180.0M253.5 126.0L128.8 198.0M66.5 126.0L191.2 198.0M284.7 144.0L160.0 216.0M35.3 144.0L160.0 216.0M35.3 144.0l0 66M284.7 144.0l0 66M66.5 162.0l0 66M253.5 162.0l0 66M97.6 180.0l0 66M222.4 180.0l0 66M128.8 198.0l0 66M191.2 198.0l0 66M160.0 216.0l0 66M160.0 216.0l0 66M35.3 160.5L160.0 232.5M160.0 232.5L284.7 160.5M35.3 177.0L160.0 249.0M160.0 249.0L284.7 177.0M35.3 193.5L160.0 265.5M160.0 265.5L284.7 193.5M35.3 210.0L160.0 282.0M160.0 282.0L284.7 210.0"/>
+        <path class="lat-solid" d="M160.0 72.0L284.7 144.0L160.0 216.0L35.3 144.0Z M35.3 144.0l0 66L160.0 282.0L160.0 216.0 M160.0 282.0L284.7 210.0L284.7 144.0"/>
+        <g class="dots"><circle class="dot" r="2.2" cx="160.0" cy="72.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="128.8" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="97.6" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="35.3" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="191.2" cy="90.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="66.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="108.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="126.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="128.8" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="97.6" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="253.5" cy="126.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="144.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="162.0" style="--d:1.31s"/><circle class="dot" r="2.2" cx="160.0" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="128.8" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="284.7" cy="144.0" style="--d:1.79s"/><circle class="dot" r="2.2" cx="253.5" cy="162.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="222.4" cy="180.0" style="--d:1.47s"/><circle class="dot" r="2.2" cx="191.2" cy="198.0" style="--d:1.63s"/><circle class="dot" r="2.2" cx="160.0" cy="216.0" style="--d:1.79s"/></g>
+        <g class="ring" transform="translate(160.0 144.0)"><ellipse class="wave" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/><ellipse class="wave w2" rx="1" ry="0.5" vector-effect="non-scaling-stroke"/></g>
+        <ellipse class="shadow" cx="160.0" cy="144.0" rx="22" ry="8"/>
+        <g transform="translate(141.1 71.1) scale(1.35)"><g class="flag"><path class="pole" d="M14 54V24c0-8 6-12 14-12"/><path class="pennant" d="M28 12h24l-9 11 9 11H28c-8 0-14 4-14 12V24c0-8 6-12 14-12z"/><circle class="base" cx="14" cy="54" r="4.5"/></g></g>
       </svg>
     </div>
     <div class="narrow reveal" style="margin:0">
