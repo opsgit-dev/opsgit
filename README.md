@@ -228,6 +228,18 @@ if (values.new_checkout_v2.value === true) { /* ... */ }
 
 `@opsgit/core` is the pure evaluation library underneath, with no I/O. Use it directly to embed the bundle JSON in your own process.
 
+## For AI agents
+
+Paste this into Claude Code, Codex, Cursor or any coding agent working in your repo:
+
+> Set up opsgit feature flags in this repo. Run `npx opsgit-flags init`, read the AGENTS.md it writes, commit the result on a branch and open a pull request. Then tell me the two repository secrets to add and the two wrangler commands to run for the API keys.
+
+`init` writes an `AGENTS.md` with the layout, the rules, and the commands, so the agent keeps doing the right thing afterwards. If your agent supports MCP, [`@opsgit/mcp`](packages/mcp) gives it the flag operations as tools:
+
+```sh
+claude mcp add opsgit -- npx -y @opsgit/mcp
+```
+
 ## Security model
 
 - **Two key types.** Server keys can read rules. Client keys can only evaluate, only see flags marked `client: true`, never see rule names, and are rate limited. Ship client keys to browsers freely: the worst case is someone evaluating your client-visible flags for made-up contexts.

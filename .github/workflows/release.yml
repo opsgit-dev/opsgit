@@ -19,7 +19,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run build
-      - run: npm test && npm run test:sdk && npm run test:worker
+      - run: npm test && npm run test:sdk && npm run test:worker && npm run test:mcp
       - name: Check tag matches package versions
         run: |
           tag="${GITHUB_REF_NAME#v}"
@@ -29,7 +29,7 @@ jobs:
           done
       - name: Publish (skips versions already on the registry)
         run: |
-          for pkg in @opsgit/core @opsgit/flags-sdk opsgit-flags; do
+          for pkg in @opsgit/core @opsgit/flags-sdk opsgit-flags @opsgit/mcp; do
             v=$(npm view "$pkg@${GITHUB_REF_NAME#v}" version 2>/dev/null || true)
             if [ -n "$v" ]; then echo "$pkg@$v already published, skipping"; continue; fi
             npm publish -w "$pkg" --provenance --access public

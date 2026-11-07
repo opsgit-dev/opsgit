@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { validateFlag, validateSegment, type Flag, type Segments } from "@opsgit/core";
+import { evaluate, validateFlag, validateSegment, type Context, type Evaluation, type Flag, type Segments } from "@opsgit/core";
 
 export interface Problem {
   file: string;
@@ -143,3 +143,71 @@ export function fail(message: string): never {
 }
 
 export const TEMPLATES_DIR = path.resolve(import.meta.dirname, "..", "templates");
+
+interface FixtureCase {
+  name?: string;
+  flag: string;
+  context?: Context;
+  expect: Partial<Pick<Evaluation, "value" | "reason" | "rule">>;
+}
+
+export interface FixtureRun {
+  /** Number of fixture files found; -1 when there is no tests/ directory. */
+  files: number;
+  total: number;
+  failures: Problem[];
+  /** Validation errors that stopped the run before any fixture executed. */
+  blocked: Problem[];
+}
+
+/**
+ * Runs the expectation fixtures in <root>/tests against the current flags.
+ * Each file holds an array of cases: { "name", "flag", "context", "expect": { "value", "reason", "rule" } }.
+ * Any field present in `expect` must match exactly.
+ */
+export async function runFixtures(root: string): Promise<FixtureRun> {
+  const { flags, segments, problems } = await loadAll(root);
+  const blocked = errorsOf(problems);
+  if (blocked.length > 0) return { files: 0, total: 0, failures: [], blocked };
+
+  const dir = path.join(root, "tests");
+  let names: string[] = [];
+  try {
+    names = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
+  } catch {
+    return { files: -1, total: 0, failures: [], blocked: [] };
+  }
+
+  const failures: Problem[] = [];
+  let total = 0;
+  for (const name of names) {
+    const file = `tests/${name}`;
+    let cases: FixtureCase[];
+    try {
+      const parsed = JSON.parse(await readFile(path.join(dir, name), "utf8"));
+      cases = Array.isArray(parsed) ? parsed : parsed.cases;
+      if (!Array.isArray(cases)) throw new Error("expected an array of cases");
+    } catch (err) {
+      failures.push({ file, message: `cannot read fixtures: ${(err as Error).message}` });
+      continue;
+    }
+    cases.forEach((c, i) => {
+      total++;
+      const label = c.name ?? `case ${i + 1}`;
+      const flag = flags[c.flag];
+      if (!flag) {
+        failures.push({ file, message: `${label}: unknown flag "${c.flag}"` });
+        return;
+      }
+      const got = evaluate(flag, c.context ?? {}, segments);
+      const mismatches: string[] = [];
+      for (const field of ["value", "reason", "rule"] as const) {
+        if (field in c.expect && JSON.stringify(c.expect[field]) !== JSON.stringify(got[field])) {
+          mismatches.push(`${field}: expected ${JSON.stringify(c.expect[field])}, got ${JSON.stringify(got[field])}`);
+        }
+      }
+      if (mismatches.length > 0) failures.push({ file, message: `${label} (${c.flag} with ${JSON.stringify(c.context ?? {})}): ${mismatches.join("; ")}` });
+    });
+  }
+  return { files: names.length, total, failures, blocked: [] };
+}

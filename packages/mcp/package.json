@@ -1,0 +1,48 @@
+{
+  "name": "@opsgit/mcp",
+  "version": "0.1.2",
+  "description": "MCP server for opsgit flags: lets Claude Code, Codex, Cursor and other agents list, create, explain and validate feature flags in your repo.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "opsgit-mcp": "dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/tools.d.ts",
+      "default": "./dist/tools.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opsgit-dev/opsgit.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/opsgit-dev/opsgit#readme",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "feature-flags",
+    "claude-code",
+    "agents"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@opsgit/core": "^0.1.2",
+    "opsgit-flags": "^0.1.2",
+    "zod": "^3.25.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

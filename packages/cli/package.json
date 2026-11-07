@@ -7,6 +7,18 @@
   "bin": {
     "opsgit-flags": "dist/cli.js"
   },
+  "exports": {
+    ".": "./dist/cli.js",
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "default": "./dist/lib.js"
+    },
+    "./diff": {
+      "types": "./dist/commands/diff.d.ts",
+      "default": "./dist/commands/diff.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "templates",

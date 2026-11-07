@@ -24,6 +24,8 @@ Two one-off steps after that, which `init` also prints:
 
 Flags for `--worker-name` and `--action-ref` let you change the worker's name and pin the action version.
 
+`init` also writes an `AGENTS.md` so that Claude Code, Codex, Cursor and similar agents know the layout, the rules, and the commands. If your agent supports MCP, `npx -y @opsgit/mcp` gives it the same operations as tools; see [@opsgit/mcp](https://www.npmjs.com/package/@opsgit/mcp).
+
 ## Day to day
 
 ```sh

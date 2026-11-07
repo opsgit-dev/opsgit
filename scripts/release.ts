@@ -13,7 +13,7 @@ if (!version || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/.test(version)) {
   process.exit(1);
 }
 const root = path.resolve(import.meta.dirname, "..");
-const packages = ["packages/core", "packages/sdk", "packages/cli"];
+const packages = ["packages/core", "packages/sdk", "packages/cli", "packages/mcp"];
 const names = new Set<string>();
 
 for (const p of packages) names.add(JSON.parse(await readFile(path.join(root, p, "package.json"), "utf8")).name);

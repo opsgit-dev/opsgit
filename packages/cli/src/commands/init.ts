@@ -1,6 +1,6 @@
 /**
  * Sets up a repository for opsgit flags: directories, JSON schemas, an example
- * flag and fixture, and the GitHub workflow that validates, previews, and deploys.
+ * flag and fixture, an AGENTS.md for AI coding agents, and the GitHub workflow that validates, previews, and deploys.
  */
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -40,6 +40,7 @@ export async function init(args: string[], _root: string): Promise<void> {
   await put("flags/example_banner.json", await template("example_banner.json"));
   await put("tests/example_banner.json", await template("example_banner.test.json"));
   await put("segments/.gitkeep", "");
+  await put("AGENTS.md", await template("AGENTS.md"));
   await put(
     ".github/workflows/flags.yml",
     (await template("flags-workflow.yml")).replaceAll("__ACTION_REF__", values["action-ref"]!).replaceAll("__WORKER_NAME__", values["worker-name"]!),

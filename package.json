@@ -12,7 +12,7 @@
   "scripts": {
     "build:core": "npm run build -w @opsgit/core",
     "build:cli": "npm run build -w opsgit-flags",
-    "build": "npm run build:core && npm run build -w @opsgit/flags-sdk && npm run build:cli && npm run build:flags",
+    "build": "npm run build:core && npm run build -w @opsgit/flags-sdk && npm run build:cli && npm run build:mcp && npm run build:flags",
     "build:flags": "node packages/cli/src/cli.ts build",
     "flags": "node packages/cli/src/cli.ts",
     "validate": "node packages/cli/src/cli.ts validate",
@@ -22,11 +22,13 @@
     "test": "node --test packages/core/test/*.test.ts",
     "test:sdk": "node --test packages/sdk/test/*.test.ts",
     "test:worker": "node --test worker/test/*.test.ts",
-    "test:all": "npm test && npm run test:sdk && npm run test:worker",
-    "typecheck": "npm run build:core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit && tsc -p packages/cli/tsconfig.json --noEmit",
+    "test:all": "npm test && npm run test:sdk && npm run test:worker && npm run test:mcp",
+    "typecheck": "npm run build:core && tsc -p worker/tsconfig.json --noEmit && tsc -p packages/sdk/tsconfig.json --noEmit && tsc -p packages/cli/tsconfig.json --noEmit && tsc -p packages/mcp/tsconfig.json --noEmit",
     "dev": "npm run build && npm run dev -w worker",
     "deploy": "npm run build && npm run deploy -w worker",
-    "release": "node scripts/release.ts"
+    "release": "node scripts/release.ts",
+    "build:mcp": "npm run build -w @opsgit/mcp",
+    "test:mcp": "node --test packages/mcp/test/*.test.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261023.1",
