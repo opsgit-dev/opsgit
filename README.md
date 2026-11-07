@@ -1,6 +1,21 @@
-# opsgit flags
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/lockup-dark.svg">
+    <img alt="opsgit" src="brand/lockup-light.svg" width="300">
+  </picture>
+</p>
 
-Feature flags that live in your Git repo and run on your own Cloudflare account.
+<p align="center"><strong>Feature flags that live in your Git repo and run on your own Cloudflare account.</strong></p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/opsgit-flags">npm</a> ·
+  <a href="#set-up-a-flags-repository-in-two-minutes">Quickstart</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#security-model">Security</a> ·
+  <a href="brand/">Brand</a>
+</p>
+
+---
 
 - **Git is the control plane.** A flag is a JSON file in `flags/`. Changing one is a pull request, with review, CI validation, a plain-English preview comment, and a permanent audit trail.
 - **The edge is the data plane.** On merge, the flags are compiled into a Cloudflare Worker and deployed globally. No KV, no database, no cold reads. Evaluation is an in-memory lookup.
